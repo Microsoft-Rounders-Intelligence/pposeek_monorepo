@@ -1,0 +1,109 @@
+/*****************************************************************
+ * 
+ * PPoseek Web Application - Spring Boot Gradle Build Configuration
+ * 
+ * Copyright(c) 2025 ROUNDERS. All rights reserved.
+ * This software is the proprietary information of ROUNDERS.
+ * 
+ *****************************************************************/
+
+// ==============================================================================
+// 플러그인 설정
+// ==============================================================================
+plugins {
+    id 'java'                                           // Java 언어 지원
+    id 'org.springframework.boot' version '3.5.4'      // Spring Boot 메인 플러그인
+    id 'io.spring.dependency-management' version '1.1.7' // Spring 의존성 관리
+}
+
+// ==============================================================================
+// 프로젝트 기본 정보
+// ==============================================================================
+group = 'com.rounders'                                  // 그룹 ID
+version = '0.0.1-SNAPSHOT'                              // 프로젝트 버전
+description = 'PPoseek Web Application - Spring Boot & MyBatis'
+
+// ==============================================================================
+// Java 버전 설정
+// ==============================================================================
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)    // Java 21 사용
+    }
+}
+
+// ==============================================================================
+// 저장소 설정
+// ==============================================================================
+repositories {
+    mavenCentral()                                      // Maven Central Repository
+}
+
+// ==============================================================================
+// 의존성 설정 (기능별 그룹화)
+// ==============================================================================
+dependencies {
+    
+    // ------------------------------------------------------------------------------
+    // Spring Boot Core Starters
+    // ------------------------------------------------------------------------------
+    implementation 'org.springframework.boot:spring-boot-starter-web'        // Spring MVC, REST API
+    implementation 'org.springframework.boot:spring-boot-starter-security'   // Spring Security 인증/인가
+    implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation (JSR-303)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'   // Actuator 모니터링 엔드포인트
+    
+    // ------------------------------------------------------------------------------
+    // Database & ORM
+    // ------------------------------------------------------------------------------
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4' // MyBatis ORM
+    runtimeOnly 'com.h2database:h2'                                            // H2 In-Memory Database
+    
+    // ------------------------------------------------------------------------------
+    // Authentication & Security
+    // ------------------------------------------------------------------------------
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'      // JWT API
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'        // JWT 구현체
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'     // JWT Jackson 연동
+    
+    // ------------------------------------------------------------------------------
+    // Monitoring & Metrics (ELK + Prometheus/Grafana 연동용)
+    // ------------------------------------------------------------------------------
+    implementation 'io.micrometer:micrometer-registry-prometheus'             // Prometheus 메트릭 수집
+    
+    // ------------------------------------------------------------------------------
+    // API Documentation
+    // ------------------------------------------------------------------------------
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'  // Swagger UI & OpenAPI 3
+    
+    // ------------------------------------------------------------------------------
+    // Development Tools
+    // ------------------------------------------------------------------------------
+    compileOnly 'org.projectlombok:lombok'                // Lombok 컴파일 타임 코드 생성
+    annotationProcessor 'org.projectlombok:lombok'        // Lombok 어노테이션 프로세서
+    
+    // ------------------------------------------------------------------------------
+    // Test Dependencies
+    // ------------------------------------------------------------------------------
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'    // Spring Boot 테스트 스타터
+    testImplementation 'org.springframework.security:spring-security-test'    // Spring Security 테스트 지원
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'                  // JUnit 5 엔진
+}
+
+// ==============================================================================
+// 빌드 태스크 설정
+// ==============================================================================
+tasks.named('test') {
+    useJUnitPlatform()                                  // JUnit 5 플랫폼 사용
+    
+    // 테스트 결과 출력 설정
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+// Gradle Wrapper 설정
+wrapper {
+    gradleVersion = '8.13'
+    distributionType = Wrapper.DistributionType.BIN
+}

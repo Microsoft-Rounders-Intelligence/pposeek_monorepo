@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+/*****************************************************************
+ * 
+ * Copyright(c) 2024 ROUNDERS. All rights reserved.
+ * This software is the proprietary information of ROUNDERS.
+ * 
+ *****************************************************************/
+-->
+
+<mapper namespace="com.rounders.pposeek.common.persistence.mapper.reader.auth.AuthReaderMapper">
+
+    <!-- 로그인용 사용자 정보 조회 (사용자명 또는 이메일로) -->
+    <select id="selectUserForLogin" parameterType="String" resultType="com.rounders.pposeek.common.model.dto.user.UserDto">
+        /* AuthReaderMapper.selectUserForLogin - 로그인용 사용자 정보 조회 */
+        SELECT 
+            user_id as userId,
+            username,
+            email,
+            password_hash as passwordHash,
+            display_name as displayName,
+            created_at as createdAt,
+            updated_at as updatedAt,
+            is_active as isActive
+        FROM users 
+        WHERE (username = #{loginId} OR email = #{loginId})
+          AND is_active = TRUE
+    </select>
+
+    <!-- 사용자명 중복 확인 -->
+    <select id="checkUsernameDuplicate" parameterType="String" resultType="int">
+        /* AuthReaderMapper.checkUsernameDuplicate - 사용자명 중복 확인 */
+        SELECT COUNT(*)
+        FROM users 
+        WHERE username = #{username}
+    </select>
+
+    <!-- 이메일 중복 확인 -->
+    <select id="checkEmailDuplicate" parameterType="String" resultType="int">
+        /* AuthReaderMapper.checkEmailDuplicate - 이메일 중복 확인 */
+        SELECT COUNT(*)
+        FROM users 
+        WHERE email = #{email}
+    </select>
+
+    <!-- 사용자 ID로 사용자 정보 조회 -->
+    <select id="selectUserById" parameterType="Integer" resultType="com.rounders.pposeek.common.model.dto.user.UserDto">
+        /* AuthReaderMapper.selectUserById - 사용자 ID로 정보 조회 */
+        SELECT 
+            user_id as userId,
+            username,
+            email,
+            password_hash as passwordHash,
+            display_name as displayName,
+            created_at as createdAt,
+            updated_at as updatedAt,
+            is_active as isActive
+        FROM users 
+        WHERE user_id = #{userId}
+          AND is_active = TRUE
+    </select>
+
+</mapper>

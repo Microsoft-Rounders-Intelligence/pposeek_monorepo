@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+/*****************************************************************
+ * 
+ * Copyright(c) 2024 ROUNDERS. All rights reserved.
+ * This software is the proprietary information of ROUNDERS.
+ * 
+ *****************************************************************/
+-->
+
+<mapper namespace="com.rounders.pposeek.common.persistence.mapper.writer.auth.AuthWriterMapper">
+
+    <!-- 사용자 등록 -->
+    <insert id="insertUser" parameterType="com.rounders.pposeek.common.model.domain.user.UserD" useGeneratedKeys="true" keyProperty="userId">
+        /* AuthWriterMapper.insertUser - 사용자 등록 */
+        INSERT INTO users (
+            username,
+            email,
+            password_hash,
+            display_name,
+            created_at,
+            updated_at,
+            is_active
+        ) VALUES (
+            #{username},
+            #{email},
+            #{passwordHash},
+            #{displayName},
+            NOW(),
+            NOW(),
+            #{isActive}
+        )
+    </insert>
+
+    <!-- 사용자 정보 수정 -->
+    <update id="updateUser" parameterType="com.rounders.pposeek.common.model.domain.user.UserD">
+        /* AuthWriterMapper.updateUser - 사용자 정보 수정 */
+        UPDATE users 
+        SET 
+            email = #{email},
+            display_name = #{displayName},
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 사용자 세션 생성 -->
+    <insert id="insertUserSession" parameterType="com.rounders.pposeek.common.model.domain.session.UserSessionD" useGeneratedKeys="true" keyProperty="sessionId">
+        /* AuthWriterMapper.insertUserSession - 사용자 세션 생성 */
+        INSERT INTO user_sessions (
+            user_id,
+            session_token,
+            session_name,
+            created_at,
+            last_activity,
+            is_active
+        ) VALUES (
+            #{userId},
+            #{sessionToken},
+            #{sessionName},
+            NOW(),
+            NOW(),
+            #{isActive}
+        )
+    </insert>
+
+    <!-- 사용자 세션 활동 업데이트 -->
+    <update id="updateSessionActivity" parameterType="String">
+        /* AuthWriterMapper.updateSessionActivity - 세션 활동 업데이트 */
+        UPDATE user_sessions 
+        SET 
+            last_activity = NOW()
+        WHERE session_token = #{sessionToken}
+          AND is_active = TRUE
+    </update>
+
+</mapper>
