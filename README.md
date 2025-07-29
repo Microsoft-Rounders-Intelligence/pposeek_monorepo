@@ -1,6 +1,9 @@
-# 🤖 pposeek - AI 기반 채용 플랫폼
+# 🤖 뽀식이 - AI 기반 채용 플랫폼
 
-pposeek은 AI 기술을 활용하여 구직자에게는 맞춤형 채용 공고를 추천하고, 기업에게는 적합한 인재를 연결해주는 지능형 채용 플랫폼입니다.
+## *우리 모두 취업 뽀셔버리자 !*
+<img width="1435" height="809" alt="Image" src="https://github.com/user-attachments/assets/c18f78c6-be77-499e-89ef-259fad7b4da3" />
+
+뽀식이는 AI 기술을 활용하여 구직자에게는 맞춤형 채용 공고를 추천하고, 기업에게는 적합한 인재를 연결해주는 지능형 채용 플랫폼입니다.
 
 이 프로젝트는 Spring Boot 백엔드와 Next.js 프론트엔드로 구성된 **모노레포(Monorepo)** 구조를 가지며, **Docker**를 통해 전체 서비스를 손쉽게 관리하고 실행할 수 있습니다.
 
@@ -51,7 +54,7 @@ docker compose up --build
 
 **3. 어플리케이션 접속** 
 ```bash
-URL: http://localhost:8080
+URL: http://localhost:3000
 ```
 
 ## 📂 프로젝트 구조
