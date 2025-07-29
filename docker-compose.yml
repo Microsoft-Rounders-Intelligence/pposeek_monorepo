@@ -1,0 +1,24 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  next-frontend:
+    build: ./next-frontend
+    container_name: next-frontend
+    ports:
+      - "3000:3000"
+
+  spring-backend:
+    build: ./spring-backend
+    container_name: spring-backend
+    ports:
+      - "8080:8080"
+
+  nginx:
+    build: ./infra/nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - next-frontend
+      - spring-backend

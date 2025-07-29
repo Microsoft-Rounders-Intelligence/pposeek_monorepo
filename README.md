@@ -1,0 +1,67 @@
+# 🤖 pposeek - AI 기반 채용 플랫폼
+
+pposeek은 AI 기술을 활용하여 구직자에게는 맞춤형 채용 공고를 추천하고, 기업에게는 적합한 인재를 연결해주는 지능형 채용 플랫폼입니다.
+
+이 프로젝트는 Spring Boot 백엔드와 Next.js 프론트엔드로 구성된 **모노레포(Monorepo)** 구조를 가지며, **Docker**를 통해 전체 서비스를 손쉽게 관리하고 실행할 수 있습니다.
+
+---
+
+## 🛠️ 주요 기술 스택
+
+### **Backend**
+* Java 21
+* Spring Boot 3
+* Spring Security & JWT (JSON Web Token)
+* MyBatis
+* H2 (개발용 인메모리 DB)
+* Gradle
+
+### **Frontend**
+* Next.js
+* React & TypeScript
+* pnpm (Package Manager)
+* Tailwind CSS
+* shadcn/ui
+
+### **DevOps**
+* Docker & Docker Compose
+* Nginx (Reverse Proxy)
+
+---
+
+## ✅ Prerequisites
+
+이 프로젝트를 실행하기 위해서는 컴퓨터에 아래의 소프트웨어가 반드시 설치되어 있어야 합니다.
+
+* [**Docker Desktop**](https://www.docker.com/products/docker-desktop/)
+
+---
+
+## 🚀 시작하기
+
+**1. 프로젝트 클론**
+```bash
+git clone https://github.com/Microsoft-Rounders-Intelligence/pposeek_monorepo.git
+cd pposeek_monorepo
+```
+**2. Docker Compose로 전체 서비스 실행**
+```bash
+docker compose up --build
+```
+
+**3. 어플리케이션 접속** 
+```bash
+URL: http://localhost:8080
+```
+
+## 📂 프로젝트 구조
+```bash
+.
+├── next-frontend/     # Next.js 프론트엔드 애플리케이션
+├── spring-backend/    # Spring Boot 백엔드 API 서버
+└── docker-compose.yml # 전체 서비스 실행을 위한 Docker Compose 설정 파일
+├── README.md #리드미 
+├── ai-service # ai 서빙하는 서버(추가예정)
+├── monitoring # 모니터링 도구들(추가예정)
+└── infra(Devops) # Nginx 리버스 프록시 설정 + infra(devops)
+```
