@@ -1,37 +1,6 @@
 version: '3.8'
 
 services:
-  next-frontend:
-    build: ./next-frontend
-    container_name: next-frontend
-    ports:
-      - "3000:3000"
-
-  spring-backend:
-    build: ./spring-backend
-    container_name: spring-backend
-    ports:
-      - "8080:8080"
-    depends_on:
-      kafka:
-        condition: service_healthy # 카프카가 완전히 준비되면 시작
-
-  nginx:
-    build: ./infra/nginx
-    container_name: nginx
-    ports:
-      - "80:80"
-    depends_on:
-      - next-frontend
-      - spring-backend
-
-  ai-service:
-    build: ./ai-service
-    container_name: ai-service
-    depends_on:
-      kafka:
-        condition: service_healthy # 카프카가 완전히 준비되면 시작
-
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -48,8 +17,43 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qo'
     healthcheck:
-      # 카프카가 완전히 준비되었는지 확인하기 위한 헬스체크
-      test: ["CMD", "kafka-cluster", "cluster-id", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
       interval: 15s
       timeout: 10s
       retries: 10
+      start_period: 60s
+
+  spring-backend:
+    build: ./spring-backend
+    container_name: spring-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  ai-service:
+    build: ./ai-service
+    container_name: ai-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  next-frontend:
+    build: ./next-frontend
+    container_name: next-frontend
+    ports:
+      - "3000:3000"
+
+  nginx:
+    build: ./infra/nginx  
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - next-frontend
+      - spring-backend
