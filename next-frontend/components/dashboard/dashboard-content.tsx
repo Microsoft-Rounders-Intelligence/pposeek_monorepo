@@ -54,7 +54,7 @@ export function DashboardContent() {
   const [resumeText, setResumeText] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
 
-  // 포트폴리오 상태 및 Ref 추가
+  // 이력서 상태 및 Ref 추가
   const [selectedPortfolio, setSelectedPortfolio] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const portfolioInputRef = useRef<HTMLInputElement>(null)
@@ -116,7 +116,7 @@ export function DashboardContent() {
     router.push(`/jobs/${jobId}`)
   }
 
-  // 포트폴리오 업로드 핸들러
+  // 이력서 업로드 핸들러
   const handlePortfolioSelectClick = () => {
     portfolioInputRef.current?.click()
   }
@@ -159,7 +159,7 @@ export function DashboardContent() {
       })
 
       if (!response.ok) {
-        throw new Error("포트폴리오 업로드에 실패했습니다.")
+        throw new Error("이력서 업로드에 실패했습니다.")
       }
 
       const fileUrl = await response.text()
@@ -175,7 +175,7 @@ export function DashboardContent() {
       console.error(error)
       toast({
         title: "업로드 실패",
-        description: "포트폴리오 업로드 중 오류가 발생했습니다.",
+        description: "이력서 업로드 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
@@ -206,7 +206,7 @@ export function DashboardContent() {
         </TabsTrigger>
         <TabsTrigger value="portfolio" className="flex items-center space-x-2">
           <Star className="h-4 w-4" />
-          <span>포트폴리오</span>
+          <span>이력서</span>
         </TabsTrigger>
       </TabsList>
 
@@ -279,7 +279,7 @@ export function DashboardContent() {
                 <div className="flex items-center space-x-4">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">포트폴리오 업데이트</p>
+                    <p className="text-sm font-medium">이력서 업데이트</p>
                     <p className="text-xs text-gray-500">1일 전</p>
                   </div>
                 </div>
@@ -486,13 +486,13 @@ export function DashboardContent() {
       <TabsContent value="portfolio" className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>포트폴리오 관리</CardTitle>
-            <CardDescription>AI가 포트폴리오를 분석하고 개선점을 제안합니다</CardDescription>
+            <CardTitle>이력서 관리</CardTitle>
+            <CardDescription>AI가 이력서를 분석하고 개선점을 제안합니다</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">포트폴리오 업로드</h3>
+                <h3 className="font-semibold">이력서 업로드</h3>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <UploadCloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <input
