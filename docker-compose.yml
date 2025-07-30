@@ -37,11 +37,14 @@ services:
   ai-service:
     build: ./ai-service
     container_name: ai-service
+    command: python consumer.py  # 실행이 자동으로 안돼서 추가.
     depends_on:
       kafka:
         condition: service_healthy
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      
+    
 
   next-frontend:
     build: ./next-frontend

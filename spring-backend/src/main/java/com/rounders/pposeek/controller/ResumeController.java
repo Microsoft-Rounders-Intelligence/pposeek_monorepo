@@ -1,4 +1,3 @@
-
 package com.rounders.pposeek.controller;
 
 import com.rounders.pposeek.common.model.dto.kafka.ResumeAnalysisRequest;
@@ -12,14 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/resume")
+@RequestMapping("/api/resume") // 상위 경로를 /api/resume으로 변경
 @RequiredArgsConstructor
 public class ResumeController {
 
     private final KafkaProducerService producerService;
-    // private final S3UploadService s3UploadService; // S3 서비스 주입
+    // private final S3UploadService s3UploadService; // TODO: S3 서비스 주입
 
-    @PostMapping("/upload")
+    @PostMapping("/upload") // 하위 경로를 /upload로 변경
     public ResponseEntity<String> analyzeResume(@RequestParam("file") MultipartFile file, @RequestParam("userId") String userId) {
         try {
             // 1. 파일을 S3와 같은 스토리지에 업로드

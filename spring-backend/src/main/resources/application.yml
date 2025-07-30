@@ -37,8 +37,8 @@ spring:
       group-id: pposeek_group
       auto-offset-reset: earliest
       # Consumer가 DTO를 직접 받도록 JSON Deserializer 설정
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      # key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
     producer:
