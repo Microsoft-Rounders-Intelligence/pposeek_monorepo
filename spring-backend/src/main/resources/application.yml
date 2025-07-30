@@ -28,6 +28,23 @@ spring:
     driver-class-name: org.h2.Driver                   # H2 JDBC 드라이버
     username: sa                                       # 데이터베이스 사용자명
     password: password                                 # 데이터베이스 비밀번호
+  # ==============================================================================
+  # Kafka Configuration
+  # ==============================================================================
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: pposeek_group
+      auto-offset-reset: earliest
+      # Consumer가 DTO를 직접 받도록 JSON Deserializer 설정
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      # Producer가 DTO를 직접 보내도록 JSON Serializer 설정
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     
   # ------------------------------------------------------------------------------
   # H2 Database Console 설정 (개발용)
@@ -156,3 +173,5 @@ logging:
       max-file-size: 10MB                             # 개별 파일 최대 크기
       max-history: 30                                 # 보관 일수
       total-size-cap: 100MB                           # 전체 최대 크기
+
+

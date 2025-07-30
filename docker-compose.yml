@@ -1,4 +1,4 @@
-# docker-compose.yml
+
 version: '3.8'
 
 services:
@@ -13,12 +13,45 @@ services:
     container_name: spring-backend
     ports:
       - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy # 카프카가 완전히 준비되면 시작
 
   nginx:
-    build: ./infra/nginx
+    build: ./nginx
     container_name: nginx
     ports:
       - "80:80"
     depends_on:
       - next-frontend
       - spring-backend
+
+  ai-service:
+    build: ./ai-service
+    container_name: ai-service
+    depends_on:
+      kafka:
+        condition: service_healthy # 카프카가 완전히 준비되면 시작
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft 모드 설정 (수정됨)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,CONTROLLER://:9093' # <-- 이 줄 추가
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qo'
+    # Healthcheck 추가
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

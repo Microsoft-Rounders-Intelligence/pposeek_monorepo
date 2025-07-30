@@ -1,0 +1,2 @@
+kafka-python
+# s3도 넣어야함

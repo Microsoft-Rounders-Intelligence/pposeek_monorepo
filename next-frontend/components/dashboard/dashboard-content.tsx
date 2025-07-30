@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { resumeApi } from "@/lib/api/resume"; // resumeApi import 확인
 
 interface JobPosting {
   id: string
@@ -54,10 +55,11 @@ export function DashboardContent() {
   const [resumeText, setResumeText] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
 
-  // 이력서 상태 및 Ref 추가
-  const [selectedPortfolio, setSelectedPortfolio] = useState<File | null>(null)
+  // --- 이력서 분석을 위한 상태 및 Ref ---
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const portfolioInputRef = useRef<HTMLInputElement>(null)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
+  // ------------------------------------
 
   const mockJobPostings: JobPosting[] = [
     {
@@ -104,28 +106,19 @@ export function DashboardContent() {
     setChatInput("")
   }
 
-  const handleResumeAnalysis = () => {
-    if (!resumeText.trim()) return
-    toast({
-        title: "분석 요청 완료",
-        description: "자소서 분석이 시작되었습니다. 잠시 후 결과를 확인해주세요."
-    })
-  }
-
   const handleJobClick = (jobId: string) => {
     router.push(`/jobs/${jobId}`)
   }
 
-  // 이력서 업로드 핸들러
-  const handlePortfolioSelectClick = () => {
-    portfolioInputRef.current?.click()
+  // --- 새로운 이력서 분석 로직 ---
+  const handleResumeFileSelect = () => {
+    resumeInputRef.current?.click()
   }
 
-  const handlePortfolioFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      // PDF 파일만 허용
       if (event.target.files[0].type === "application/pdf") {
-        setSelectedPortfolio(event.target.files[0])
+        setResumeFile(event.target.files[0])
       } else {
         toast({
           title: "파일 형식 오류",
@@ -136,52 +129,42 @@ export function DashboardContent() {
     }
   }
 
-  const handlePortfolioUpload = async () => {
-    if (!selectedPortfolio) {
-      toast({ title: "파일을 선택해주세요.", variant: "destructive" })
+  const handleResumeAnalysis = async () => {
+    if (!resumeFile || !user) {
+      toast({ title: "분석할 이력서 파일을 선택해주세요.", variant: "destructive" })
       return
     }
 
     setIsUploading(true)
     const formData = new FormData()
-    formData.append("file", selectedPortfolio)
+    formData.append("file", resumeFile)
+    formData.append("userId", user.id) // user.id를 함께 보냅니다.
+
+    const token = localStorage.getItem("jwt_token")
+    if (!token) {
+      toast({ title: "로그인이 필요합니다.", variant: "destructive" })
+      setIsUploading(false)
+      return
+    }
 
     try {
-      const token = localStorage.getItem("jwt_token")
-      if (!token) throw new Error("인증 토큰이 없습니다.")
-
-      const response = await fetch("http://localhost:8080/api/files/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error("이력서 업로드에 실패했습니다.")
-      }
-
-      const fileUrl = await response.text()
-      // TODO: 반환된 fileUrl을 유저 정보에 업데이트하는 로직 추가
-      console.log("Uploaded portfolio URL:", fileUrl)
-
+      const response = await resumeApi.analyze(formData, token) as { data: string }
       toast({
-        title: "업로드 성공",
-        description: `${selectedPortfolio.name} 파일이 성공적으로 업로드되었습니다.`,
+        title: "분석 요청 완료",
+        description: response.data, // 서버에서 보낸 메시지를 표시
       })
-      setSelectedPortfolio(null)
+      setResumeFile(null) // 분석 요청 후 파일 선택 초기화
     } catch (error) {
-      console.error(error)
       toast({
-        title: "업로드 실패",
-        description: "이력서 업로드 중 오류가 발생했습니다.",
+        title: "요청 실패",
+        description: "이력서 분석 요청 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
       setIsUploading(false)
     }
   }
+  // ------------------------------
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -272,14 +255,14 @@ export function DashboardContent() {
                 <div className="flex items-center space-x-4">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">자소서 AI 분석 완료</p>
+                    <p className="text-sm font-medium">이력서 AI 분석 완료</p>
                     <p className="text-xs text-gray-500">5시간 전</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">이력서 업데이트</p>
+                    <p className="text-sm font-medium">프로필 업데이트</p>
                     <p className="text-xs text-gray-500">1일 전</p>
                   </div>
                 </div>
@@ -399,12 +382,12 @@ export function DashboardContent() {
       {/* Chat */}
       {hasPermission("chat_ai") && (
         <TabsContent value="chat" className="space-y-6">
-          <Card className="h-96">
+          <Card className="h-[500px]">
             <CardHeader>
               <CardTitle>AI 취업 상담</CardTitle>
               <CardDescription>뽀식이 AI와 함께 취업 준비를 해보세요</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col h-full">
+            <CardContent className="flex flex-col h-[calc(100%-78px)]">
               <div className="flex-1 overflow-y-auto space-y-4 p-4 border rounded-md mb-4 bg-gray-50">
                 {chatMessages.map((message, index) => (
                   <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -434,7 +417,7 @@ export function DashboardContent() {
         </TabsContent>
       )}
 
-      {/* Resume */}
+      {/* 자소서 컨설팅 */}
       <TabsContent value="resume" className="space-y-6">
         <Card>
           <CardHeader>
@@ -448,99 +431,71 @@ export function DashboardContent() {
               onChange={(e) => setResumeText(e.target.value)}
               className="min-h-48"
             />
-            <Button onClick={handleResumeAnalysis} className="w-full bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={() => {}} className="w-full bg-emerald-600 hover:bg-emerald-700">
               AI 분석 시작
             </Button>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>분석 결과</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                <h4 className="font-semibold text-emerald-800 mb-2">강점</h4>
-                <p className="text-emerald-700">구체적인 프로젝트 경험과 성과가 잘 드러나 있습니다.</p>
-              </div>
-              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <h4 className="font-semibold text-yellow-800 mb-2">개선점</h4>
-                <p className="text-yellow-700">지원 동기를 더 구체적으로 작성해보세요.</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-2">추천 키워드</h4>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge className="bg-emerald-100 text-emerald-800">협업</Badge>
-                  <Badge className="bg-emerald-100 text-emerald-800">문제해결</Badge>
-                  <Badge className="bg-emerald-100 text-emerald-800">성장</Badge>
-                  <Badge className="bg-emerald-100 text-emerald-800">혁신</Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </TabsContent>
 
-      {/* Portfolio */}
+      {/* 이력서 */}
       <TabsContent value="portfolio" className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>이력서 관리</CardTitle>
-            <CardDescription>AI가 이력서를 분석하고 개선점을 제안합니다</CardDescription>
+            <CardTitle>이력서 관리 및 AI 분석</CardTitle>
+            <CardDescription>PDF 이력서 파일을 업로드하면 AI가 분석하여 피드백을 드립니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h3 className="font-semibold">이력서 업로드</h3>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <UploadCloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="font-semibold text-lg">이력서 업로드</h3>
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500"
+                  onClick={handleResumeFileSelect}
+                >
+                  <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
                   <input
                     type="file"
-                    ref={portfolioInputRef}
-                    onChange={handlePortfolioFileChange}
+                    ref={resumeInputRef}
+                    onChange={handleResumeFileChange}
                     className="hidden"
                     accept=".pdf"
                   />
-                  <Button
-                    onClick={handlePortfolioSelectClick}
-                    className="mt-4 bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    파일 선택
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2">PDF 파일을 업로드 해주세요.</p>
-                  {selectedPortfolio && (
-                    <div className="mt-4 text-left bg-gray-100 p-3 rounded-md">
-                      <p className="font-medium text-sm text-gray-800">선택된 파일:</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 truncate">{selectedPortfolio.name}</span>
-                        <Button
-                          onClick={handlePortfolioUpload}
-                          disabled={isUploading}
-                          size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          {isUploading ? "업로드 중..." : "업로드"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-gray-600">클릭 또는 파일을 드래그하여 업로드</p>
+                  <p className="text-xs text-gray-500 mt-2">PDF 파일만 가능</p>
                 </div>
+                {resumeFile && (
+                  <div className="mt-4 text-left bg-gray-100 p-3 rounded-md">
+                    <p className="font-medium text-sm text-gray-800">선택된 파일:</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 truncate">{resumeFile.name}</span>
+                    </div>
+                  </div>
+                )}
+                <Button
+                  onClick={handleResumeAnalysis}
+                  disabled={isUploading || !resumeFile}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 mt-4"
+                >
+                  {isUploading ? "분석 요청 중..." : "AI 분석 시작"}
+                </Button>
               </div>
+
               <div className="space-y-4">
-                <h3 className="font-semibold">AI 분석 결과</h3>
+                <h3 className="font-semibold text-lg">AI 분석 결과</h3>
+                {/* TODO: 이 부분은 웹소켓을 통해 실시간으로 업데이트 받아야 합니다. */}
                 <div className="space-y-3">
-                  <div className="p-3 bg-emerald-50 rounded border border-emerald-200">
-                    <p className="text-sm">📊 전체 점수: 85/100</p>
+                  <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <h4 className="font-semibold text-emerald-800 mb-2">📊 전체 점수</h4>
+                    <p className="text-emerald-700">분석 대기 중...</p>
                   </div>
-                  <div className="p-3 bg-emerald-50 rounded border border-emerald-200">
-                    <p className="text-sm">🎨 디자인: 우수</p>
+                  <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <h4 className="font-semibold text-emerald-800 mb-2">👍 강점</h4>
+                    <p className="text-emerald-700">분석 대기 중...</p>
                   </div>
-                  <div className="p-3 bg-yellow-50 rounded border border-yellow-200">
-                    <p className="text-sm">📝 내용 구성: 개선 필요</p>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded border border-emerald-200">
-                    <p className="text-sm">🔧 기술 스택: 우수</p>
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h4 className="font-semibold text-yellow-800 mb-2">💡 개선점</h4>
+                    <p className="text-yellow-700">분석 대기 중...</p>
                   </div>
                 </div>
               </div>

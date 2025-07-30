@@ -87,6 +87,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'    // Spring Boot 테스트 스타터
     testImplementation 'org.springframework.security:spring-security-test'    // Spring Security 테스트 지원
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'                  // JUnit 5 엔진
+
+    // ------------------------------------------------------------------------------
+    // Kafka Dependencies
+    // ------------------------------------------------------------------------------
+    implementation 'org.springframework.kafka:spring-kafka'                    // Spring Kafka 추가 
 }
 
 // ==============================================================================
