@@ -29,7 +29,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_sessions_activity ON user_sessions(last_activity);
 
--- 테스트 데이터 삽입
+-- 테스트 데이터 삽입 (간단한 비밀번호로 테스트용)
 INSERT INTO users (username, email, password_hash, display_name, is_active) VALUES
-('admin', 'admin@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', '관리자', TRUE),
-('user1', 'user1@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', '사용자1', TRUE);
+('admin', 'admin@example.com', 'password123', '관리자', TRUE),
+('user1', 'user1@example.com', 'password123', '사용자1', TRUE),
+('testuser', 'test@pposeek.com', 'password123', '테스트사용자', TRUE);

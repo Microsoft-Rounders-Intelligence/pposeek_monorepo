@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.rounders.pposeek.common.business.auth.AuthService;
 import com.rounders.pposeek.common.model.dto.auth.LoginDto;
@@ -36,6 +37,7 @@ import com.rounders.pposeek.common.model.dto.user.UserDto;
  * @apiNote
  * 2025	siunkimm	최초 작성<br/>
  */
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/auth")
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class AuthController {
             @RequestHeader HttpHeaders headers,
             @RequestBody LoginDto loginDto) {
 
+        log.info("로그인 요청 받음: username={}", loginDto.getUsername());
         ResponseMessage responseMessage = new ResponseMessage();
 
         try {
@@ -57,10 +60,12 @@ public class AuthController {
             responseMessage.setHttpStatus(HttpStatus.OK);
             responseMessage.setData(tokenInfo);
             responseMessage.setMessage("로그인 성공");
-
+            
+            log.info("로그인 성공: username={}", loginDto.getUsername());
             return new ResponseEntity<>(responseMessage, new HttpHeaders(), responseMessage.getHttpStatus());
             
         } catch (Exception e) {
+            log.error("로그인 실패: username={}, error={}", loginDto.getUsername(), e.getMessage());
             responseMessage.setHttpStatus(HttpStatus.BAD_REQUEST);
             responseMessage.setMessage("로그인 실패: " + e.getMessage());
             return new ResponseEntity<>(responseMessage, new HttpHeaders(), responseMessage.getHttpStatus());
@@ -72,6 +77,7 @@ public class AuthController {
             @RequestHeader HttpHeaders headers,
             @RequestBody RegisterDto registerDto) {
 
+        log.info("회원가입 요청 받음: username={}, email={}", registerDto.getUsername(), registerDto.getEmail());
         ResponseMessage responseMessage = new ResponseMessage();
 
         try {
@@ -82,9 +88,12 @@ public class AuthController {
             responseMessage.setData(registeredUser);
             responseMessage.setMessage("회원가입 성공");
 
+            log.info("회원가입 성공: username={}, email={}", registerDto.getUsername(), registerDto.getEmail());
             return new ResponseEntity<>(responseMessage, new HttpHeaders(), responseMessage.getHttpStatus());
             
         } catch (Exception e) {
+            log.error("회원가입 실패: username={}, email={}, error={}", 
+                     registerDto.getUsername(), registerDto.getEmail(), e.getMessage());
             responseMessage.setHttpStatus(HttpStatus.BAD_REQUEST);
             responseMessage.setMessage("회원가입 실패: " + e.getMessage());
             return new ResponseEntity<>(responseMessage, new HttpHeaders(), responseMessage.getHttpStatus());
