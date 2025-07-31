@@ -205,8 +205,8 @@ export function DashboardContent() {
     formData.append("userId", String(user.userId)) // user.id를 함께 보냅니다.
     console.log('formData:', formData)
     console.log('userId:', user.userId)
-    console.log('jwt_token:', localStorage.getItem("jwt_token"))
-    const token = localStorage.getItem("jwt_token")
+    console.log('front_jwt_token:', localStorage.getItem("accessToken"))
+    const token = localStorage.getItem("accessToken")
     if (!token) {
       toast({ title: "로그인이 필요합니다.", variant: "destructive" })
       setIsUploading(false)

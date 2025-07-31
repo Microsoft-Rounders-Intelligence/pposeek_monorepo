@@ -12,11 +12,14 @@ export interface User {
   isActive: boolean;
 }
 
+
+
 // 백엔드로부터 받는 토큰 정보 타입 (TokenInfo)
 export interface TokenInfo {
   grantType: string;
   accessToken: string;
   expiresIn: number;
+  refreshToken: string;
   userInfo: User;
 }
 
