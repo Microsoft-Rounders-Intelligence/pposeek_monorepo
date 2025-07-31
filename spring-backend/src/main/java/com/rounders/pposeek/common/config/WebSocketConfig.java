@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 웹소켓 연결을 위한 엔드포인트 설정
         // CORS 문제를 해결하기 위해 setAllowedOrigins에 정확한 주소를 명시합니다.
         registry.addEndpoint("/ws")
-        .setAllowedOrigins("http://localhost", "http://localhost:3000") // "*" 대신 정확한 주소 사용
-        .withSockJS();
+            .setAllowedOrigins("http://localhost", "http://localhost:3000") // "*" 대신 정확한 주소 사용
+            .withSockJS();
     }
 }

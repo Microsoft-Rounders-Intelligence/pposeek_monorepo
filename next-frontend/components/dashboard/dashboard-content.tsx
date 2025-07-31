@@ -202,7 +202,7 @@ export function DashboardContent() {
     setIsUploading(true)
     const formData = new FormData()
     formData.append("file", resumeFile)
-    formData.append("userId", user.id.toString()) // user.id를 함께 보냅니다.
+    formData.append("userId", String(user.id)) // user.id를 함께 보냅니다.
 
     const token = localStorage.getItem("jwt_token")
     if (!token) {
