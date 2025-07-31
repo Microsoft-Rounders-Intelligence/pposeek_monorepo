@@ -92,6 +92,11 @@ dependencies {
     // Kafka Dependencies
     // ------------------------------------------------------------------------------
     implementation 'org.springframework.kafka:spring-kafka'                    // Spring Kafka 추가 
+
+    // ------------------------------------------------------------------------------
+    // WebSocket Dependencies
+    // ------------------------------------------------------------------------------
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'   // WebSocket 지원
 }
 
 // ==============================================================================

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { resumeApi } from "@/lib/api/resume"; // resumeApi import 확인
+import SockJS from "sockjs-client"
+import { Client } from '@stomp/stompjs';
 
 interface JobPosting {
   id: string
@@ -39,6 +41,15 @@ interface ChatMessage {
   role: "user" | "assistant"
   content: string
 }
+
+// 백엔드의 AnalysisFeedback DTO
+interface AnalysisFeedback {
+  userId: string;
+  strengths: string;
+  weaknesses: string;
+  status: string;
+}
+
 
 export function DashboardContent() {
   const { user, hasPermission } = useAuth()
@@ -60,6 +71,58 @@ export function DashboardContent() {
   const [isUploading, setIsUploading] = useState(false)
   const resumeInputRef = useRef<HTMLInputElement>(null)
   // ------------------------------------
+
+  // --- AI 분석 결과를 저장하고, 웹소켓 클라이언트를 관리할 상태 추가 ---
+  const [analysisResult, setAnalysisResult] = useState<AnalysisFeedback | null>(null)
+  const stompClient = useRef<Client | null>(null)
+  // -----------------------------------------------------------------
+  
+  // --- 최신 라이브러리에 맞게 웹소켓 연결 로직 수정 ---
+  useEffect(() => {
+    if (user && user.id) {
+      const client = new Client({
+        webSocketFactory: () => new SockJS("http://localhost/ws"), // Nginx를 통해 접속
+        debug: (str) => {
+          console.log(new Date(), str);
+        },
+        onConnect: () => {
+          console.log("WebSocket Connected!");
+          
+          // 1. 상세 분석 결과 구독
+          client.subscribe(`/user/${user.id}/queue/feedback`, (message) => {
+            const feedback = JSON.parse(message.body) as AnalysisFeedback;
+            console.log("Feedback received:", feedback);
+            setAnalysisResult(feedback);
+          });
+          
+          // 2. 간단한 알림 구독
+          client.subscribe(`/user/${user.id}/queue/notifications`, (message) => {
+            const notification = JSON.parse(message.body);
+            console.log("Notification received:", notification);
+            toast({
+              title: "🔔 새로운 알림",
+              description: notification.message,
+            });
+          });
+        },
+        onStompError: (frame) => {
+            console.error('Broker reported error: ' + frame.headers['message']);
+            console.error('Additional details: ' + frame.body);
+        },
+      });
+
+      client.activate();
+      stompClient.current = client;
+
+      return () => {
+        if (stompClient.current) {
+          stompClient.current.deactivate();
+          console.log("WebSocket Disconnected");
+        }
+      }
+    }
+  }, [user, toast])
+  // ----------------------------------------------------
 
   const mockJobPostings: JobPosting[] = [
     {
@@ -119,6 +182,7 @@ export function DashboardContent() {
     if (event.target.files && event.target.files[0]) {
       if (event.target.files[0].type === "application/pdf") {
         setResumeFile(event.target.files[0])
+        setAnalysisResult(null); // 새 파일 선택 시 이전 결과 초기화
       } else {
         toast({
           title: "파일 형식 오류",
@@ -138,7 +202,7 @@ export function DashboardContent() {
     setIsUploading(true)
     const formData = new FormData()
     formData.append("file", resumeFile)
-    formData.append("userId", user.id) // user.id를 함께 보냅니다.
+    formData.append("userId", user.id.toString()) // user.id를 함께 보냅니다.
 
     const token = localStorage.getItem("jwt_token")
     if (!token) {
@@ -481,24 +545,25 @@ export function DashboardContent() {
                 </Button>
               </div>
 
-              <div className="space-y-4">
+               {/* --- AI 분석 결과 UI (웹소켓과 연동) --- */}
+               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">AI 분석 결과</h3>
-                {/* TODO: 이 부분은 웹소켓을 통해 실시간으로 업데이트 받아야 합니다. */}
                 <div className="space-y-3">
                   <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <h4 className="font-semibold text-emerald-800 mb-2">📊 전체 점수</h4>
-                    <p className="text-emerald-700">분석 대기 중...</p>
-                  </div>
-                  <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                     <h4 className="font-semibold text-emerald-800 mb-2">👍 강점</h4>
-                    <p className="text-emerald-700">분석 대기 중...</p>
+                    <p className="text-emerald-700">
+                      {analysisResult ? analysisResult.strengths : "분석 대기 중..."}
+                    </p>
                   </div>
                   <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <h4 className="font-semibold text-yellow-800 mb-2">💡 개선점</h4>
-                    <p className="text-yellow-700">분석 대기 중...</p>
+                    <p className="text-yellow-700">
+                      {analysisResult ? analysisResult.weaknesses : "분석 대기 중..."}
+                    </p>
                   </div>
                 </div>
               </div>
+              {/* ------------------------------------- */}
             </div>
           </CardContent>
         </Card>
