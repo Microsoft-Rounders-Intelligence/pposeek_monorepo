@@ -9,7 +9,9 @@ package com.rounders.pposeek.common.business.auth;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import com.rounders.pposeek.common.config.JwtConfig;
 import com.rounders.pposeek.common.model.dto.auth.LoginDto;
 import com.rounders.pposeek.common.model.dto.auth.RegisterDto;
 import com.rounders.pposeek.common.model.dto.auth.TokenInfo;
@@ -27,11 +29,13 @@ import java.util.UUID;
  * @apiNote
  * 2025	siunkimm	최초 작성<br/>
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final AuthPersistenceAdapter authPersistenceAdapter;
+    private final JwtConfig jwtConfig;
 
     /**
      * 사용자 로그인.
@@ -43,31 +47,44 @@ public class AuthService {
      * @return 토큰 정보
      */
     public TokenInfo login(LoginDto loginDto) {
+        log.info("로그인 시도: {}", loginDto.getUsername());
+        
         // 사용자 정보 조회 (사용자명 또는 이메일로)
         UserDto userDto = authPersistenceAdapter.selectUserForLogin(loginDto.getUsername());
         
         if (userDto == null) {
+            log.warn("사용자를 찾을 수 없음: {}", loginDto.getUsername());
             throw new RuntimeException("사용자를 찾을 수 없습니다.");
         }
 
         if (!userDto.getIsActive()) {
+            log.warn("비활성화된 사용자: {}", loginDto.getUsername());
             throw new RuntimeException("비활성화된 사용자입니다.");
         }
         
         // 비밀번호 검증 (실제 저장된 비밀번호와 비교)
         if (!loginDto.getPassword().equals(userDto.getPasswordHash())) {
+            log.warn("비밀번호 불일치: {}", loginDto.getUsername());
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
         
-        // 세션 토큰 생성 및 저장
+        // 로그인 기록용 세션 저장 (선택사항)
         String sessionToken = UUID.randomUUID().toString();
-        authPersistenceAdapter.insertUserSession(userDto.getUserId(), sessionToken, "New Chat");
+        authPersistenceAdapter.insertUserSession(userDto.getUserId(), sessionToken, "Login Session");
         
-        // JWT 토큰 생성 로직 필요 (임시로 세션 토큰 반환)
+        // 🎫 JWT 토큰 생성 (사용자 정보를 암호화해서 토큰에 담음)
+        String jwtToken = jwtConfig.generateToken(
+            userDto.getUserId(), 
+            userDto.getUsername(), 
+            userDto.getEmail()
+        );
+        
+        log.info("JWT 토큰 생성 완료: userId={}", userDto.getUserId());
+        
         return TokenInfo.builder()
                 .grantType("Bearer")
-                .accessToken(sessionToken)
-                .expiresIn(3600L)
+                .accessToken(jwtToken)  // 실제 JWT 토큰 반환
+                .expiresIn(86400L)      // 24시간
                 .build();
     }
 
@@ -121,13 +138,24 @@ public class AuthService {
      * @return 사용자 정보
      */
     public UserDto getCurrentUser(String token) {
-        // JWT 토큰에서 사용자 정보 추출 로직 필요
-        Integer userId = extractUserIdFromToken(token);
+        log.info("사용자 정보 조회 시도");
+        
+        // 🔍 JWT 토큰에서 사용자 ID 추출
+        if (!jwtConfig.isTokenValid(token)) {
+            log.warn("유효하지 않은 JWT 토큰");
+            throw new RuntimeException("유효하지 않은 토큰입니다.");
+        }
+        
+        Integer userId = jwtConfig.extractUserId(token);
+        log.info("JWT에서 추출된 사용자 ID: {}", userId);
         
         UserDto userDto = authPersistenceAdapter.selectUserById(userId);
         if (userDto != null) {
             // 비밀번호 정보는 반환하지 않음
             userDto.setPasswordHash(null);
+            log.info("사용자 정보 조회 성공: {}", userDto.getUsername());
+        } else {
+            log.warn("사용자 정보를 찾을 수 없음: userId={}", userId);
         }
         
         return userDto;
@@ -144,16 +172,5 @@ public class AuthService {
      */
     public boolean checkUsernameDuplicate(String username) {
         return authPersistenceAdapter.checkUsernameDuplicate(username);
-    }
-
-    /**
-     * JWT 토큰에서 사용자 ID 추출 (임시 구현).
-     * 
-     * @param token JWT 토큰
-     * @return 사용자 ID
-     */
-    private Integer extractUserIdFromToken(String token) {
-        // JWT 파싱 로직 필요
-        return 1; // 임시 반환
     }
 }
