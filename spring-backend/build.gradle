@@ -97,6 +97,12 @@ dependencies {
     // WebSocket Dependencies
     // ------------------------------------------------------------------------------
     implementation 'org.springframework.boot:spring-boot-starter-websocket'   // WebSocket 지원
+    
+    // ------------------------------------------------------------------------------
+    // Redis Dependencies (Optional - 세션 관리 및 캐싱)
+    // ------------------------------------------------------------------------------
+    // implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 지원 (필요 시 주석 해제)
+    // implementation 'org.springframework.session:spring-session-data-redis'   // Redis 기반 세션 관리 (필요 시 주석 해제)
 }
 
 // ==============================================================================

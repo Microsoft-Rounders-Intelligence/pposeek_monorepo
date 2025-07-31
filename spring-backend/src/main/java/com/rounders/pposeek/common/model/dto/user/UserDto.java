@@ -53,6 +53,11 @@ public class UserDto {
     private String displayName;
     
     /**
+     * 사용자 역할 (USER, COMPANY, ADMIN)
+     */
+    private String role;
+    
+    /**
      * 생성일시
      */
     private LocalDateTime createdAt;

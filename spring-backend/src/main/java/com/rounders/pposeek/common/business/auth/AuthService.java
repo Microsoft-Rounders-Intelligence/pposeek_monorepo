@@ -7,6 +7,7 @@
 package com.rounders.pposeek.common.business.auth;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class AuthService {
 
     private final AuthPersistenceAdapter authPersistenceAdapter;
     private final JwtConfig jwtConfig;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 사용자 로그인.
@@ -62,8 +64,8 @@ public class AuthService {
             throw new RuntimeException("비활성화된 사용자입니다.");
         }
         
-        // 비밀번호 검증 (실제 저장된 비밀번호와 비교)
-        if (!loginDto.getPassword().equals(userDto.getPasswordHash())) {
+        // 비밀번호 검증 (Spring Security PasswordEncoder 사용)
+        if (!passwordEncoder.matches(loginDto.getPassword(), userDto.getPasswordHash())) {
             log.warn("비밀번호 불일치: {}", loginDto.getUsername());
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
@@ -72,7 +74,7 @@ public class AuthService {
         String sessionToken = UUID.randomUUID().toString();
         authPersistenceAdapter.insertUserSession(userDto.getUserId(), sessionToken, "Login Session");
         
-        // 🎫 JWT 토큰 생성 (사용자 정보를 암호화해서 토큰에 담음)
+        // JWT 토큰 생성 (사용자 정보를 암호화해서 토큰에 담음)
         String jwtToken = jwtConfig.generateToken(
             userDto.getUserId(), 
             userDto.getUsername(), 
@@ -108,8 +110,8 @@ public class AuthService {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
         
-        // 비밀번호 암호화 (임시로 그대로 저장)
-        String encodedPassword = registerDto.getPassword();
+        // 비밀번호 암호화 (Spring Security PasswordEncoder 사용)
+        String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
         
         // 사용자 정보 생성
         UserDto userDto = UserDto.builder()
@@ -117,6 +119,7 @@ public class AuthService {
                 .email(registerDto.getEmail())
                 .passwordHash(encodedPassword)
                 .displayName(registerDto.getDisplayName() != null ? registerDto.getDisplayName() : registerDto.getUsername())
+                .role("USER") // 기본 역할 설정
                 .isActive(true)
                 .build();
         
