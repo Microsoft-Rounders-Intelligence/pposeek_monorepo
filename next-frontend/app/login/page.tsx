@@ -169,7 +169,7 @@ function RegisterForm() {
           title: "회원가입 성공",
           description: "환영합니다!",
         })
-        router.push("/")
+        router.push("/dashboard") // "/"를 "/dashboard"로 변경
       } else {
         setError("회원가입 중 오류가 발생했습니다.")
       }
