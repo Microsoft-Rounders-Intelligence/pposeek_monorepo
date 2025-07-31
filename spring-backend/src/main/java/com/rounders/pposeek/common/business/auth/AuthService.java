@@ -54,8 +54,8 @@ public class AuthService {
             throw new RuntimeException("비활성화된 사용자입니다.");
         }
         
-        // 비밀번호 검증 (임시로 단순 비교)
-        if (!loginDto.getPassword().equals("password")) {
+        // 비밀번호 검증 (실제 저장된 비밀번호와 비교)
+        if (!loginDto.getPassword().equals(userDto.getPasswordHash())) {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
         

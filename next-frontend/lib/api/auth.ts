@@ -3,32 +3,43 @@ import { apiClient } from './client'
 export interface User {
   id: number
   email: string
-  name: string
-  phone: string
+  name?: string  // 옵셔널로 변경
+  displayName?: string  // 백엔드 실제 필드 추가
+  phone?: string
   role: string
   profileImage?: string
 }
 
 export interface LoginRequest {
-  email: string
+  username: string
   password: string
 }
 
+export interface TokenInfo {
+  accessToken: string
+  tokenType: string
+  refreshToken?: string
+}
+
+export interface ResponseMessage<T = any> {
+  httpStatus: string
+  data: T
+  message: string
+}
+
 export interface LoginResponse {
-  token: string
-  user: User
+  httpStatus: string
+  data: TokenInfo
+  message: string
 }
 
 export const authApi = {
   login: (data: LoginRequest) => 
-    apiClient.post<LoginResponse>('/auth/login', data),
+    apiClient.post<LoginResponse>('/v1/auth/login', data),
     
-  signup: (data: Partial<User> & { password: string }) => 
-    apiClient.post<User>('/auth/signup', data),
-    
-  logout: (token: string) => 
-    apiClient.post<void>('/auth/logout', undefined, { token }),
+  register: (data: Partial<User> & { password: string }) => 
+    apiClient.post<ResponseMessage<User>>('/v1/auth/register', data),
     
   getCurrentUser: (token: string) => 
-    apiClient.get<User>('/auth/me', { token }),
+    apiClient.get<ResponseMessage<User> | User>('/v1/auth/me', { token }),
 }

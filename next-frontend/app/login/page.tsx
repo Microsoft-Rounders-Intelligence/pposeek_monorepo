@@ -131,13 +131,12 @@ export default function LoginPage() {
 
 function RegisterForm() {
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
-    skills: "",
-    experience: "",
-    location: "",
+    displayName: "",
+    phone: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -159,12 +158,10 @@ function RegisterForm() {
 
     try {
       const success = await register({
+        username: formData.username,
         email: formData.email,
         password: formData.password,
-        name: formData.name,
-        skills: formData.skills.split(",").map((s) => s.trim()),
-        experience: formData.experience,
-        location: formData.location,
+        displayName: formData.displayName,
       })
 
       if (success) {
@@ -186,6 +183,16 @@ function RegisterForm() {
   return (
     <form onSubmit={handleRegister} className="space-y-4">
       <div className="space-y-2">
+        <Label htmlFor="reg-username">사용자명</Label>
+        <Input
+          id="reg-username"
+          placeholder="사용자명을 입력하세요"
+          value={formData.username}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="reg-email">이메일</Label>
         <Input
           id="reg-email"
@@ -197,13 +204,21 @@ function RegisterForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="reg-name">이름</Label>
+        <Label htmlFor="reg-display-name">표시명 (선택)</Label>
         <Input
-          id="reg-name"
-          placeholder="이름을 입력하세요"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
+          id="reg-display-name"
+          placeholder="표시명을 입력하세요"
+          value={formData.displayName}
+          onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="reg-phone">전화번호 (선택)</Label>
+        <Input
+          id="reg-phone"
+          placeholder="전화번호를 입력하세요"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
         />
       </div>
       <div className="space-y-2">
@@ -226,33 +241,6 @@ function RegisterForm() {
           value={formData.confirmPassword}
           onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
           required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-skills">기술 스택 (쉼표로 구분)</Label>
-        <Input
-          id="reg-skills"
-          placeholder="React, TypeScript, Node.js"
-          value={formData.skills}
-          onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-experience">경력</Label>
-        <Input
-          id="reg-experience"
-          placeholder="3년, 신입 등"
-          value={formData.experience}
-          onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-location">지역</Label>
-        <Input
-          id="reg-location"
-          placeholder="서울, 부산 등"
-          value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
         />
       </div>
 

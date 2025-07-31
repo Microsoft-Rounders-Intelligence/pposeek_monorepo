@@ -154,11 +154,12 @@ logging:
     # 루트 로그 레벨
     root: INFO
     
-    # 패키지별 로그 레벨 (배포시에도 적당한 수준)
-    com.rounders.pposeek: INFO                        # 애플리케이션 로그
-    org.springframework.security: WARN               # Spring Security 로그
-    org.mybatis: INFO                                # MyBatis 로그  
-    org.springframework.web: INFO                     # Spring Web 로그
+    # 패키지별 로그 레벨 (개발시 상세 로그)
+    com.rounders.pposeek: DEBUG                       # 애플리케이션 로그 (상세)
+    org.springframework.security: DEBUG              # Spring Security 로그 (상세)
+    org.mybatis: DEBUG                               # MyBatis 로그 (상세)
+    org.springframework.web: DEBUG                    # Spring Web 로그 (상세)
+    org.springframework.web.servlet.DispatcherServlet: DEBUG  # 요청 매핑 로그
     
   # 로그 패턴 설정
   pattern:

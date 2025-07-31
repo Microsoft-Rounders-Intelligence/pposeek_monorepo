@@ -56,4 +56,10 @@ public class RegisterDto {
      */
     @Size(max = 100, message = "표시명은 100자 이하여야 합니다")
     private String displayName;
+    
+    /**
+     * 전화번호
+     */
+    @Size(max = 20, message = "전화번호는 20자 이하여야 합니다")
+    private String phone;
 }
