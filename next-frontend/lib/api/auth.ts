@@ -27,6 +27,14 @@ export interface ResponseMessage<T = any> {
   message: string
 }
 
+export interface RegisterData {
+  username: string
+  email: string
+  displayName?: string
+  password: string
+  confirmPassword: string
+}
+
 export interface LoginResponse {
   httpStatus: string
   data: TokenInfo

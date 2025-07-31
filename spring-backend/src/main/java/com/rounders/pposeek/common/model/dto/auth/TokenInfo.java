@@ -1,5 +1,7 @@
 package com.rounders.pposeek.common.model.dto.auth;
 
+import com.rounders.pposeek.common.model.dto.user.UserDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +23,5 @@ public class TokenInfo {
     private String accessToken;
     private String refreshToken;
     private Long expiresIn;
+    private UserDto userInfo;
 }

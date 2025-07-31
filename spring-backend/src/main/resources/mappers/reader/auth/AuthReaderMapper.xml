@@ -62,4 +62,20 @@
           AND is_active = TRUE
     </select>
 
+    <select id="selectUserByEmail" parameterType="String" resultType="com.rounders.pposeek.common.model.dto.user.UserDto">
+        /* AuthReaderMapper.selectUserByEmail - 이메일로 사용자 조회 */
+        SELECT
+            user_id AS userId,
+            username,
+            email,
+            password_hash AS passwordHash,
+            display_name AS displayName,
+            role,
+            is_active AS isActive
+        FROM
+            users
+        WHERE
+            email = #{email}
+    </select>
+
 </mapper>

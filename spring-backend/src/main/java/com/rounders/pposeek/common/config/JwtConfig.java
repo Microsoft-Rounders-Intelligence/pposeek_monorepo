@@ -37,6 +37,10 @@ public class JwtConfig {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
+    public long getExpiration() {
+        return expiration;
+    }
+
     /**
      * 로그인 시 JWT 토큰 생성
      * 사용자 정보를 암호화해서 토큰에 담음

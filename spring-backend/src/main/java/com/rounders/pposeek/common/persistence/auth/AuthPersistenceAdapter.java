@@ -29,6 +29,10 @@ import com.rounders.pposeek.common.persistence.mapper.writer.auth.AuthWriterMapp
 @RequiredArgsConstructor
 public class AuthPersistenceAdapter {
 
+    public UserDto selectUserByEmail(String email) {
+        return authReaderMapper.selectUserByEmail(email);
+    }
+
     /**
      * 인증 처리 Writer Mapper
      */

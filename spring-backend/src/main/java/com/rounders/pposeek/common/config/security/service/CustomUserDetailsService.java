@@ -43,49 +43,48 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final AuthPersistenceAdapter authPersistenceAdapter;
 
-    /**
-     * 사용자 정보 로드.
-     * 
-     * @param username 사용자 ID (문자열로 변환된 사용자 번호)
-     * @return UserDetails 사용자 상세 정보
-     * @throws UsernameNotFoundException 사용자를 찾을 수 없는 경우
-     */
+  
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("사용자 정보 로드 시도: {}", username);
-        
-        try {
-            // 문자열 사용자 ID를 정수로 변환
-            Integer userId = Integer.parseInt(username);
-            
-            // 사용자 정보 조회
-            UserDto user = authPersistenceAdapter.selectUserById(userId);
-            
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        log.debug("사용자 정보 로드 시도: {}", usernameOrEmail);
+
+        UserDto user;
+
+        //  이메일 형식인지, ID 형식인지 판별하여 조회하는 로직으로 변경
+        if (usernameOrEmail.contains("@")) {
+            // 이메일로 사용자 조회
+            user = authPersistenceAdapter.selectUserByEmail(usernameOrEmail);
             if (user == null) {
-                log.warn("사용자를 찾을 수 없음: {}", userId);
-                throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+                log.warn("이메일을 찾을 수 없음: {}", usernameOrEmail);
+                throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + usernameOrEmail);
             }
-            
-            log.debug("사용자 정보 로드 완료: {} ({})", user.getUsername(), user.getRole());
-            
-            // Spring Security UserDetails 객체 생성
-            return User.builder()
-                    .username(String.valueOf(user.getUserId())) // 사용자 ID를 username으로 사용
-                    .password(user.getPasswordHash() != null ? user.getPasswordHash() : "") // 비밀번호
-                    .authorities(getAuthorities(user.getRole())) // 권한 설정
-                    .accountExpired(false) // 계정 만료 여부
-                    .accountLocked(false) // 계정 잠김 여부
-                    .credentialsExpired(false) // 자격 증명 만료 여부
-                    .disabled(false) // 계정 비활성화 여부
-                    .build();
-                    
-        } catch (NumberFormatException e) {
-            log.error("잘못된 사용자 ID 형식: {}", username);
-            throw new UsernameNotFoundException("잘못된 사용자 ID 형식: " + username);
-        } catch (Exception e) {
-            log.error("사용자 정보 로드 중 오류 발생: {}", e.getMessage(), e);
-            throw new UsernameNotFoundException("사용자 정보 로드 실패: " + username);
+        } else {
+            // 숫자 ID로 사용자 조회
+            try {
+                Integer userId = Integer.parseInt(usernameOrEmail);
+                user = authPersistenceAdapter.selectUserById(userId);
+                if (user == null) {
+                    log.warn("사용자 ID를 찾을 수 없음: {}", userId);
+                    throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+                }
+            } catch (NumberFormatException e) {
+                log.error("잘못된 사용자 ID 형식: {}", usernameOrEmail);
+                throw new UsernameNotFoundException("잘못된 사용자 ID 형식: " + usernameOrEmail);
+            }
         }
+        
+        log.debug("사용자 정보 로드 완료: {} ({})", user.getUsername(), user.getRole());
+        
+        return User.builder()
+                .username(String.valueOf(user.getUserId())) // username 필드에는 항상 고유 식별자인 '사용자 ID'를 사용
+                .password(user.getPasswordHash() != null ? user.getPasswordHash() : "")
+                .authorities(getAuthorities(user.getRole()))
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+        
     }
 
     /**

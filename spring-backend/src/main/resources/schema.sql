@@ -1,25 +1,31 @@
 -- 사용자 테이블
+
 CREATE TABLE IF NOT EXISTS users (
-    user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    display_name VARCHAR(100) DEFAULT NULL,
+    display_name VARCHAR(100),
+    
+    role VARCHAR(20) DEFAULT 'USER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    -- 🎯 아래 UNIQUE 제약조건 2개를 추가합니다.
+    CONSTRAINT UQ_username UNIQUE (username),
+    CONSTRAINT UQ_email UNIQUE (email)
 );
 
 -- 사용자 세션 테이블
 CREATE TABLE IF NOT EXISTS user_sessions (
-    session_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    session_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    session_token VARCHAR(255) NOT NULL UNIQUE,
-    session_name VARCHAR(100) DEFAULT 'New Chat',
+    session_token VARCHAR(255) NOT NULL,
+    session_name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- 인덱스 생성

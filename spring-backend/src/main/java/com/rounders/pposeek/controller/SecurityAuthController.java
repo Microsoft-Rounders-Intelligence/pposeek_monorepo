@@ -59,39 +59,20 @@ public class SecurityAuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         log.info("Spring Security 로그인 시도: {}", loginDto.getUsername());
-        
         try {
-            // Spring Security Authentication Manager를 통한 인증
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginDto.getUsername(),
-                    loginDto.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword())
             );
-            
-            // 인증 성공 시 Security Context에 설정
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            
-            // JWT 토큰 생성을 위해 기존 AuthService 활용
             TokenInfo tokenInfo = authService.login(loginDto);
-            // 디버깅을 위한 로그 추가
-            log.info("로그인 응답 토큰 정보: grantType={}, accessToken={}, refreshToken={}", 
-            tokenInfo.getGrantType(), 
-            tokenInfo.getAccessToken() != null ? "있음" : "없음",
-            tokenInfo.getRefreshToken() != null ? "있음" : "없음");
-            
             log.info("Spring Security 로그인 성공: {}", loginDto.getUsername());
-            
             return ResponseEntity.ok(tokenInfo);
-            
         } catch (AuthenticationException e) {
             log.warn("Spring Security 로그인 실패: {} - {}", loginDto.getUsername(), e.getMessage());
-            return ResponseEntity.badRequest()
-                .body("로그인에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body("로그인에 실패했습니다: " + e.getMessage());
         } catch (Exception e) {
             log.error("로그인 처리 중 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError()
-                .body("로그인 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body("로그인 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -104,18 +85,15 @@ public class SecurityAuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDto registerDto) {
         log.info("회원가입 시도: {}", registerDto.getUsername());
-        
         try {
-            UserDto user = authService.register(registerDto);
-            
-            log.info("회원가입 성공: {}", registerDto.getUsername());
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
-            
+            // 🎯 AuthService.register가 이제 TokenInfo를 반환합니다.
+            TokenInfo tokenInfo = authService.register(registerDto);
+            log.info("회원가입 및 토큰 발급 성공: {}", registerDto.getUsername());
+            // 🎯 상태코드를 201로, 본문을 tokenInfo 객체로 변경합니다.
+            return ResponseEntity.status(HttpStatus.CREATED).body(tokenInfo);
         } catch (Exception e) {
             log.error("회원가입 처리 중 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest()
-                .body("회원가입에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body("회원가입에 실패했습니다: " + e.getMessage());
         }
     }
 

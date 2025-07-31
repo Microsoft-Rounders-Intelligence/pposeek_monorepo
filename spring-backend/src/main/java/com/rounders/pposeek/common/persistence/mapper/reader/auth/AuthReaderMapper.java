@@ -31,6 +31,7 @@ public interface AuthReaderMapper {
      * @return 사용자 정보
      */
     public UserDto selectUserForLogin(String loginId);
+    UserDto selectUserByEmail(String email);
 
     /**
      * 사용자명 존재 여부 확인.
