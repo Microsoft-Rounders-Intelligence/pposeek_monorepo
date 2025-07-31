@@ -8,6 +8,7 @@
  *****************************************************************/
 package com.rounders.pposeek.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +27,7 @@ import com.rounders.pposeek.common.model.dto.auth.RegisterDto;
 import com.rounders.pposeek.common.model.dto.auth.TokenInfo;
 import com.rounders.pposeek.common.model.dto.user.UserDto;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
@@ -72,6 +74,11 @@ public class SecurityAuthController {
             
             // JWT 토큰 생성을 위해 기존 AuthService 활용
             TokenInfo tokenInfo = authService.login(loginDto);
+            // 디버깅을 위한 로그 추가
+            log.info("로그인 응답 토큰 정보: grantType={}, accessToken={}, refreshToken={}", 
+            tokenInfo.getGrantType(), 
+            tokenInfo.getAccessToken() != null ? "있음" : "없음",
+            tokenInfo.getRefreshToken() != null ? "있음" : "없음");
             
             log.info("Spring Security 로그인 성공: {}", loginDto.getUsername());
             
@@ -103,7 +110,7 @@ public class SecurityAuthController {
             
             log.info("회원가입 성공: {}", registerDto.getUsername());
             
-            return ResponseEntity.ok(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
             
         } catch (Exception e) {
             log.error("회원가입 처리 중 오류 발생: {}", e.getMessage(), e);
@@ -118,25 +125,31 @@ public class SecurityAuthController {
      * @return 사용자 정보
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser() {
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return ResponseEntity.status(401).body("인증되지 않은 사용자입니다.");
+            // Authorization 헤더에서 JWT 토큰 추출
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(401).body("인증 토큰이 없습니다.");
             }
             
-            // JWT 토큰에서 사용자 정보 추출
-            String userIdStr = authentication.getName();
+            String token = authHeader.substring(7); // "Bearer " 제거
             
-            UserDto user = authService.getCurrentUser(userIdStr);
+            // JWT 토큰에서 직접 userId 추출
+            if (!jwtConfig.isTokenValid(token)) {
+                return ResponseEntity.status(401).body("유효하지 않은 토큰입니다.");
+            }
+            
+            Integer userId = jwtConfig.extractUserId(token); // 🎯 userId 직접 추출
+            log.debug("JWT에서 추출된 사용자 ID: {}", userId);
+            
+            UserDto user = authService.getCurrentUserById(userId); // 🎯 userId로 조회
             
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
             
             log.debug("현재 사용자 정보 조회: {}", user.getUsername());
-            
             return ResponseEntity.ok(user);
             
         } catch (Exception e) {

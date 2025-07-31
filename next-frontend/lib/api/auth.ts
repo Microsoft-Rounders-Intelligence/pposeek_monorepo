@@ -35,11 +35,11 @@ export interface LoginResponse {
 
 export const authApi = {
   login: (data: LoginRequest) => 
-    apiClient.post<LoginResponse>('/v1/auth/login', data),
+    apiClient.post<LoginResponse>('/auth/login', data),
     
   register: (data: Partial<User> & { password: string }) => 
-    apiClient.post<ResponseMessage<User>>('/v1/auth/register', data),
+    apiClient.post<ResponseMessage<User>>('/auth/register', data),
     
   getCurrentUser: (token: string) => 
-    apiClient.get<ResponseMessage<User> | User>('/v1/auth/me', { token }),
+    apiClient.get<ResponseMessage<User> | User>('/auth/me', { token }),
 }

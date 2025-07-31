@@ -28,6 +28,10 @@ import jakarta.validation.constraints.Size;
 @AllArgsConstructor
 @Builder
 public class RegisterDto {
+    /**
+     * 사용자 ID
+     */
+    private Integer userId;
     
     /**
      * 사용자명
@@ -62,4 +66,9 @@ public class RegisterDto {
      */
     @Size(max = 20, message = "전화번호는 20자 이하여야 합니다")
     private String phone;
+
+    /**
+     * 암호화된 비밀번호 해시
+     */
+    private String passwordHash;
 }

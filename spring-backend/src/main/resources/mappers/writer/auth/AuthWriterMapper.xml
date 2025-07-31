@@ -13,7 +13,7 @@
 <mapper namespace="com.rounders.pposeek.common.persistence.mapper.writer.auth.AuthWriterMapper">
 
     <!-- 사용자 등록 -->
-    <insert id="insertUser" parameterType="com.rounders.pposeek.common.model.domain.user.UserD" useGeneratedKeys="true" keyProperty="userId">
+    <insert id="insertUser" parameterType="com.rounders.pposeek.common.model.dto.auth.RegisterDto" useGeneratedKeys="true" keyProperty="userId">
         /* AuthWriterMapper.insertUser - 사용자 등록 */
         INSERT INTO users (
             username,

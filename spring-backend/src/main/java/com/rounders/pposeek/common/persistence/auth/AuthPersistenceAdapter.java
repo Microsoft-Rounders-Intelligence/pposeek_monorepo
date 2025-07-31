@@ -109,7 +109,15 @@ public class AuthPersistenceAdapter {
                 .isActive(true)
                 .build();
 
-        return authWriterMapper.insertUser(userD);
+    
+        int result = authWriterMapper.insertUser(userD);
+        
+      
+        
+        userDto.setUserId(userD.getUserId());
+
+        // 3. 저장 결과를 반환합니다.
+        return result;
     }
 
     /**

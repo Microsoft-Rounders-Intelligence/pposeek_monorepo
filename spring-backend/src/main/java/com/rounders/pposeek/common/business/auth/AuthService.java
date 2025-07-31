@@ -117,6 +117,7 @@ public class AuthService {
         UserDto userDto = UserDto.builder()
                 .username(registerDto.getUsername())
                 .email(registerDto.getEmail())
+                .userId(registerDto.getUserId())
                 .passwordHash(encodedPassword)
                 .displayName(registerDto.getDisplayName() != null ? registerDto.getDisplayName() : registerDto.getUsername())
                 .role("USER") // 기본 역할 설정
@@ -140,23 +141,30 @@ public class AuthService {
      * @param token JWT 토큰
      * @return 사용자 정보
      */
+    // 기존 메서드를 이렇게 수정
     public UserDto getCurrentUser(String token) {
-        log.info("사용자 정보 조회 시도");
-        
-        // 🔍 JWT 토큰에서 사용자 ID 추출
         if (!jwtConfig.isTokenValid(token)) {
-            log.warn("유효하지 않은 JWT 토큰");
             throw new RuntimeException("유효하지 않은 토큰입니다.");
         }
         
         Integer userId = jwtConfig.extractUserId(token);
-        log.info("JWT에서 추출된 사용자 ID: {}", userId);
+        return getCurrentUserById(userId); // 새로 만든 메서드 재사용
+    }
+
+        /**
+     * 사용자 ID로 현재 사용자 정보 조회.
+     * 
+     * @param userId 사용자 ID
+     * @return 사용자 정보
+     */
+    public UserDto getCurrentUserById(Integer userId) {
+        log.info("사용자 ID로 정보 조회: {}", userId);
         
         UserDto userDto = authPersistenceAdapter.selectUserById(userId);
         if (userDto != null) {
             // 비밀번호 정보는 반환하지 않음
             userDto.setPasswordHash(null);
-            log.info("사용자 정보 조회 성공: {}", userDto.getUsername());
+            log.info("사용자 정보 조회 성공: userId={}, username={}", userId, userDto.getUsername());
         } else {
             log.warn("사용자 정보를 찾을 수 없음: userId={}", userId);
         }
