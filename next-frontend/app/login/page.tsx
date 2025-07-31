@@ -1,52 +1,192 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from "react";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useRouter } from "next/navigation";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LogoText } from "@/components/ui/logo-text"
-import { useAuth } from "@/contexts/auth-context"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+import { useAuth } from '@/contexts/auth-context';
+import { RegisterData } from '@/lib/api/auth';
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { LogoText } from "@/components/ui/logo-text";
+import { Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+
+// 로그인 폼 유효성 검사 스키마
+const loginSchema = z.object({
+  email: z.string().email({ message: "올바른 이메일 형식을 입력해주세요." }),
+  password: z.string().min(1, { message: "비밀번호를 입력해주세요." }),
+});
+
+// 회원가입 폼 유효성 검사 스키마
+const registerSchema = z.object({
+  username: z.string().min(2, { message: "사용자명은 2자 이상이어야 합니다." }),
+  email: z.string().email({ message: "올바른 이메일 형식을 입력해주세요." }),
+  displayName: z.string().min(2, { message: "닉네임은 2자 이상이어야 합니다." }),
+  password: z.string().min(8, { message: "비밀번호는 8자 이상이어야 합니다." }),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "비밀번호가 일치하지 않습니다.",
+  path: ["confirmPassword"],
+});
+
+// --- 로그인 폼 컴포넌트 ---
+function LoginForm() {
+  const { login, isLoading } = useAuth();
+  
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    await login({ username: values.email, password: values.password });
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="email">이메일</Label>
+              <FormControl>
+                <Input id="email" type="email" placeholder="이메일을 입력하세요" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="password">비밀번호</Label>
+              <FormControl>
+                <Input id="password" type="password" placeholder="비밀번호를 입력하세요" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          로그인
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// --- 회원가입 폼 컴포넌트 ---
+function RegisterForm() {
+  const { register, isLoading } = useAuth();
+
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { username: "", email: "", displayName: "", password: "", confirmPassword: "" },
+  });
+
+  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+    const registerData: RegisterData = {
+      username: values.username,
+      email: values.email,
+      password: values.password,
+      displayName: values.displayName,
+    };
+    await register(registerData);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="reg-username">사용자명</Label>
+              <FormControl>
+                <Input id="reg-username" placeholder="사용할 아이디" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="reg-email">이메일</Label>
+              <FormControl>
+                <Input id="reg-email" type="email" placeholder="이메일 주소" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="displayName"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="reg-displayName">닉네임</Label>
+              <FormControl>
+                <Input id="reg-displayName" placeholder="활동할 닉네임" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="reg-password">비밀번호</Label>
+              <FormControl>
+                <Input id="reg-password" type="password" placeholder="8자 이상 입력" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <Label htmlFor="reg-confirm-password">비밀번호 확인</Label>
+              <FormControl>
+                <Input id="reg-confirm-password" type="password" placeholder="비밀번호 다시 입력" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          회원가입
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// --- 메인 페이지 컴포넌트 ---
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  const { login } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const success = await login(email, password)
-      if (success) {
-        toast({
-          title: "로그인 성공",
-          description: "환영합니다!",
-        })
-        router.push("/")
-      } else {
-        setError("이메일 또는 비밀번호가 올바르지 않습니다.")
-      }
-    } catch (error) {
-      setError("로그인 중 오류가 발생했습니다.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center p-4">
@@ -64,7 +204,6 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <LogoText size="lg" />
           </div>
-          
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="space-y-4">
@@ -72,53 +211,9 @@ export default function LoginPage() {
               <TabsTrigger value="login">로그인</TabsTrigger>
               <TabsTrigger value="register">회원가입</TabsTrigger>
             </TabsList>
-
             <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">이메일</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="이메일을 입력하세요"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">비밀번호</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="비밀번호를 입력하세요"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}  
-                &nbsp;
-
-                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  로그인
-                </Button>
-                
-
-
-              </form>
-
-              <div className="mt-4 text-center text-sm text-gray-600">
-               
-              </div>
+              <LoginForm />
             </TabsContent>
-
             <TabsContent value="register">
               <RegisterForm />
             </TabsContent>
@@ -126,134 +221,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-function RegisterForm() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    displayName: "",
-    phone: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  const { register } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("비밀번호가 일치하지 않습니다.")
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const success = await register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        displayName: formData.displayName,
-      })
-
-      if (success) {
-        toast({
-          title: "회원가입 성공",
-          description: "환영합니다!",
-        })
-        router.push("/") // "/"를 "/dashboard"로 변경
-      } else {
-        setError("회원가입 중 오류가 발생했습니다.")
-      }
-    } catch (error) {
-      setError("회원가입 중 오류가 발생했습니다.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleRegister} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="reg-username">사용자명</Label>
-        <Input
-          id="reg-username"
-          placeholder="사용자명을 입력하세요"
-          value={formData.username}
-          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-email">이메일</Label>
-        <Input
-          id="reg-email"
-          type="email"
-          placeholder="이메일을 입력하세요"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-display-name">표시명 (선택)</Label>
-        <Input
-          id="reg-display-name"
-          placeholder="표시명을 입력하세요"
-          value={formData.displayName}
-          onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-phone">전화번호 (선택)</Label>
-        <Input
-          id="reg-phone"
-          placeholder="전화번호를 입력하세요"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-password">비밀번호</Label>
-        <Input
-          id="reg-password"
-          type="password"
-          placeholder="비밀번호를 입력하세요"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-confirm-password">비밀번호 확인</Label>
-        <Input
-          id="reg-confirm-password"
-          type="password"
-          placeholder="비밀번호를 다시 입력하세요"
-          value={formData.confirmPassword}
-          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-          required
-        />
-      </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        회원가입
-      </Button>
-    </form>
-  )
+  );
 }

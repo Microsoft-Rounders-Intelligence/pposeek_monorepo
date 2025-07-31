@@ -89,6 +89,7 @@ public class WebSecurityConfig {
                     "/api/v1/auth/**",      // 기존 인증 API 경로
                     "/api/auth/**",         // 추가 인증 경로
                     "/api/public/**",       // 공개 API
+                    "/ws/**",               // WebSocket 엔드포인트 
                     "/h2-console/**",       // H2 콘솔 (개발환경)
                     "/actuator/health",     // Health Check
                     "/swagger-ui/**",       // Swagger UI

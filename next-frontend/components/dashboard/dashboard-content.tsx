@@ -79,7 +79,7 @@ export function DashboardContent() {
   
   // --- 최신 라이브러리에 맞게 웹소켓 연결 로직 수정 ---
   useEffect(() => {
-    if (user && user.id) {
+    if (user && user.userId) {
       const client = new Client({
         webSocketFactory: () => new SockJS("http://localhost/ws"), // Nginx를 통해 접속
         debug: (str) => {
@@ -89,14 +89,14 @@ export function DashboardContent() {
           console.log("WebSocket Connected!");
           
           // 1. 상세 분석 결과 구독
-          client.subscribe(`/user/${user.id}/queue/feedback`, (message) => {
+          client.subscribe(`/user/${user.userId}/queue/feedback`, (message) => {
             const feedback = JSON.parse(message.body) as AnalysisFeedback;
             console.log("Feedback received:", feedback);
             setAnalysisResult(feedback);
           });
           
           // 2. 간단한 알림 구독
-          client.subscribe(`/user/${user.id}/queue/notifications`, (message) => {
+          client.subscribe(`/user/${user.userId}/queue/notifications`, (message) => {
             const notification = JSON.parse(message.body);
             console.log("Notification received:", notification);
             toast({
@@ -202,8 +202,10 @@ export function DashboardContent() {
     setIsUploading(true)
     const formData = new FormData()
     formData.append("file", resumeFile)
-    formData.append("userId", String(user.id)) // user.id를 함께 보냅니다.
-
+    formData.append("userId", String(user.userId)) // user.id를 함께 보냅니다.
+    console.log('formData:', formData)
+    console.log('userId:', user.userId)
+    console.log('jwt_token:', localStorage.getItem("jwt_token"))
     const token = localStorage.getItem("jwt_token")
     if (!token) {
       toast({ title: "로그인이 필요합니다.", variant: "destructive" })

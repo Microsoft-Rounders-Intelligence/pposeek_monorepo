@@ -1,53 +1,79 @@
-import { apiClient } from './client'
+import {apiClient} from './client';
 
+// --- 타입 정의 ---
+
+// 사용자 정보 타입 (UserDto)
 export interface User {
-  id: number
-  email: string
-  name?: string  // 옵셔널로 변경
-  displayName?: string  // 백엔드 실제 필드 추가
-  phone?: string
-  role: string
-  profileImage?: string
+  userId: number;
+  username: string;
+  email: string;
+  displayName: string;
+  role: string;
+  isActive: boolean;
 }
 
-export interface LoginRequest {
-  username: string
-  password: string
-}
-
+// 백엔드로부터 받는 토큰 정보 타입 (TokenInfo)
 export interface TokenInfo {
-  accessToken: string
-  tokenType: string
-  refreshToken?: string
+  grantType: string;
+  accessToken: string;
+  expiresIn: number;
+  userInfo: User;
 }
 
-export interface ResponseMessage<T = any> {
-  httpStatus: string
-  data: T
-  message: string
+// 로그인 시 서버로 보낼 데이터 타입 (LoginDto)
+export interface LoginData {
+  username: string; // 백엔드에서는 이메일을 username 필드로 받습니다.
+  password: string;
 }
 
+// 회원가입 시 서버로 보낼 데이터 타입 (RegisterDto)
 export interface RegisterData {
-  username: string
-  email: string
-  displayName?: string
-  password: string
-  confirmPassword: string
+  username: string;
+  email: string;
+  password: string;
+  displayName?: string;
 }
 
-export interface LoginResponse {
-  httpStatus: string
-  data: TokenInfo
-  message: string
-}
+// --- API 함수들 ---
 
-export const authApi = {
-  login: (data: LoginRequest) => 
-    apiClient.post<LoginResponse>('/auth/login', data),
-    
-  register: (data: Partial<User> & { password: string }) => 
-    apiClient.post<ResponseMessage<User>>('/auth/register', data),
-    
-  getCurrentUser: (token: string) => 
-    apiClient.get<ResponseMessage<User> | User>('/auth/me', { token }),
-}
+/**
+ * 로그인 API 호출
+ * @param loginData - 로그인 정보 (이메일, 비밀번호)
+ * @returns 토큰 정보 (TokenInfo)
+ */
+export const login = async (loginData: LoginData): Promise<TokenInfo> => {
+  // apiClient.post는 AxiosResponse를 반환하므로, .data를 통해 실제 데이터를 추출합니다.
+  const response = await apiClient.post<TokenInfo>('/auth/login', loginData);
+  console.log('Login response:', response); // 디버깅용 로그
+  return response;
+};
+
+/**
+ * 회원가입 API 호출
+ * @param registerData - 회원가입 정보
+ * @returns 토큰 정보 (TokenInfo, 자동 로그인)
+ */
+export const register = async (registerData: RegisterData): Promise<TokenInfo> => {
+    const response = await apiClient.post<TokenInfo>('/auth/register', registerData);
+    console.log('Register response:', response); // 디버깅용 로그
+    return response;
+};
+
+/**
+ * 현재 로그인된 사용자 정보 조회 API 호출
+ * (apiClient가 토큰을 자동으로 헤더에 추가해줍니다.)
+ * @returns 사용자 정보 (User)
+ */
+export const getMe = async (): Promise<User> => {
+    const response = await apiClient.get<User>('/auth/me');
+    console.log('Get Me response:', response); // 디버깅용 로그
+    return response;
+};
+
+/**
+ * 로그아웃 API 호출
+ */
+export const logout = async (): Promise<void> => {
+    // 로그아웃은 특별한 응답 데이터가 필요 없을 수 있습니다.
+    await apiClient.post('/auth/logout');
+};
