@@ -81,22 +81,29 @@ export function DashboardContent() {
   useEffect(() => {
     if (user && user.userId) {
       const client = new Client({
-        webSocketFactory: () => new SockJS("http://localhost/ws"), // Nginx를 통해 접속
-        debug: (str) => {
-          console.log(new Date(), str);
+        webSocketFactory: () => new SockJS("http://localhost:8080/ws"), // Nginx를 통해 접속
+
+          //  연결 시 사용자 ID 헤더 추가
+        connectHeaders: {
+          userId: user.userId.toString()
         },
         onConnect: () => {
           console.log("WebSocket Connected!");
-          
+          // ------------------------------------------------------------------  문제중... 여기파트
           // 1. 상세 분석 결과 구독
-          client.subscribe(`/user/${user.userId}/queue/feedback`, (message) => {
+          client.subscribe(`/user/queue/feedback`, (message) => {
             const feedback = JSON.parse(message.body) as AnalysisFeedback;
             console.log("Feedback received:", feedback);
             setAnalysisResult(feedback);
+
+            toast({
+              title: "🎉 이력서 분석 완료!",
+              description: "AI 분석 결과를 확인해보세요.",
+            });
           });
           
           // 2. 간단한 알림 구독
-          client.subscribe(`/user/${user.userId}/queue/notifications`, (message) => {
+          client.subscribe(`/user/queue/notifications`, (message) => {
             const notification = JSON.parse(message.body);
             console.log("Notification received:", notification);
             toast({
@@ -108,6 +115,12 @@ export function DashboardContent() {
         onStompError: (frame) => {
             console.error('Broker reported error: ' + frame.headers['message']);
             console.error('Additional details: ' + frame.body);
+
+            toast({
+              title: "연결 오류",
+              description: "실시간 알림 연결에 실패했습니다.",
+              variant: "destructive",
+            });
         },
       });
 
@@ -203,6 +216,7 @@ export function DashboardContent() {
     const formData = new FormData()
     formData.append("file", resumeFile)
     formData.append("userId", String(user.userId)) // user.id를 함께 보냅니다.
+
     console.log('formData:', formData)
     console.log('userId:', user.userId)
     console.log('front_jwt_token:', localStorage.getItem("accessToken"))
@@ -243,12 +257,11 @@ export function DashboardContent() {
           <Briefcase className="h-4 w-4" />
           <span>맞춤 공고</span>
         </TabsTrigger>
-        {hasPermission("chat_ai") && (
           <TabsTrigger value="chat" className="flex items-center space-x-2">
             <MessageCircle className="h-4 w-4" />
             <span>AI 상담</span>
           </TabsTrigger>
-        )}
+        
         <TabsTrigger value="resume" className="flex items-center space-x-2">
           <FileText className="h-4 w-4" />
           <span>자소서 컨설팅</span>
@@ -446,8 +459,7 @@ export function DashboardContent() {
       </TabsContent>
 
       {/* Chat */}
-      {hasPermission("chat_ai") && (
-        <TabsContent value="chat" className="space-y-6">
+      <TabsContent value="chat" className="space-y-6">
           <Card className="h-[500px]">
             <CardHeader>
               <CardTitle>AI 취업 상담</CardTitle>
@@ -481,7 +493,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
         </TabsContent>
-      )}
+      
 
       {/* 자소서 컨설팅 */}
       <TabsContent value="resume" className="space-y-6">

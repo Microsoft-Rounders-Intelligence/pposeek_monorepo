@@ -11,11 +11,12 @@ interface RequestOptions extends RequestInit {
 class ApiClient {
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { token, body, ...fetchOptions } = options
-    
+    console.log(`API 요청: ${endpoint}`, fetchOptions)
     const headers: Record<string, string> = {
       ...(token && { Authorization: `Bearer ${token}` }),
       ...(fetchOptions.headers as Record<string, string>),
     }
+    console.log('headers',headers)
 
     // body가 FormData가 아닐 경우에만 Content-Type을 application/json으로 설정합니다.
     if (!(body instanceof FormData)) {

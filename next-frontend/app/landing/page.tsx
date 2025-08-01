@@ -7,7 +7,7 @@ import { OrbitControls, Sphere, MeshDistortMaterial, Environment } from "@react-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-context" // 에러 유력.
 import { ArrowRight, Sparkles, Brain, Target, Users, TrendingUp, Shield, Zap, CheckCircle, Star } from "lucide-react"
 import type * as THREE from "three"
 

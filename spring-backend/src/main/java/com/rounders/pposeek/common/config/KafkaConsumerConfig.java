@@ -1,8 +1,6 @@
 package com.rounders.pposeek.common.config;
 
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import com.rounders.pposeek.common.model.dto.kafka.AnalysisFeedback;
-import com.rounders.pposeek.common.model.dto.kafka.Notification;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
- * dto deserializer 용 파일
+ * Kafka Consumer 설정 - Object로 역직렬화하여 유연성 확보
  */
 @Configuration
 public class KafkaConsumerConfig {
@@ -30,13 +27,24 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "pposeek_group");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        
+        // JSON 역직렬화 설정
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(Object.class));
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false); // Python에서 타입 헤더를 보내지 않음
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Object.class.getName());
+        
+        return new DefaultKafkaConsumerFactory<>(
+            props, 
+            new StringDeserializer(), 
+            new JsonDeserializer<>(Object.class)
+        );
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = 
+            new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }

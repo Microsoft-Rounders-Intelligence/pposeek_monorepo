@@ -30,6 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+
+
+  // 여기서 렌더링 화면에서도 해당 오류가 뜨는 경우가 있어서 수정필요함. ******************************************** 8월1일.
   useEffect(() => {
     const validateTokenOnLoad = async () => {
       // 🎯 이제 토큰이 있는지 여부만 확인합니다. apiClient가 헤더에 자동으로 추가해줍니다.
@@ -38,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const userData = await authApi.getMe();
           setUser(userData);
+          console.log("Token validated successfully, user data loaded.");
         } catch (error) {
           console.error('Token validation failed on load:', error);
           localStorage.removeItem('accessToken');

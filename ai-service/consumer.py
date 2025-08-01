@@ -13,7 +13,11 @@ print("--- AI Service Script Started. Waiting for messages... ---")
 # 버퍼를 강제로 비워 로그를 즉시 출력합니다. (핵심 코드)
 sys.stdout.flush()
 
+
+consumer = None
+producer = None
 try:
+    print("🔄 Connecting to Kafka...")
     consumer = KafkaConsumer(
         REQUEST_TOPIC,
         bootstrap_servers=KAFKA_BROKER_URL,
@@ -21,17 +25,24 @@ try:
         auto_offset_reset='earliest'
     )
 
+    print("--- Kafka Consumer initialized successfully. ---", consumer)
+
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_BROKER_URL,
         value_serializer=lambda x: json.dumps(x).encode('utf-8')
     )
+
+    print("--- Kafka Producer initialized successfully. ---", producer)
+
 except Exception as e:
     print(f"!!! KAFKA CONNECTION ERROR: {e}")
     sys.stdout.flush()
-
+    sys.exit(1)  # 연결 실패 시 프로그램 종료
 
 def analyze_resume(file_url):
     print(f"-> Analyzing resume from: {file_url}")
+    
+    
     sys.stdout.flush()
     
     time.sleep(10) # AI 분석 시뮬레이션
@@ -43,6 +54,10 @@ def analyze_resume(file_url):
     sys.stdout.flush()
     return strengths, weaknesses
 
+
+print("🎧 Starting to listen for messages...")
+sys.stdout.flush()
+
 for message in consumer:
     try:
         request_data = message.value
@@ -50,7 +65,13 @@ for message in consumer:
         sys.stdout.flush()
 
         user_id = request_data.get('userId')
+        print(type(user_id))
+        user_id = str(user_id)  # Ensure user_id is a string
+        print(type(user_id))
         file_url = request_data.get('fileUrl')
+
+        print(f"Processing resume for user: {user_id}, file URL: {file_url}")
+
 
         strengths, weaknesses = analyze_resume(file_url)
 
@@ -80,3 +101,6 @@ for message in consumer:
     except Exception as e:
         print(f"!!! ERROR during message processing: {e}")
         sys.stdout.flush()
+
+
+    
