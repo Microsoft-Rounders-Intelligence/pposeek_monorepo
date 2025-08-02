@@ -1,0 +1,67 @@
+version: '3.8'
+
+
+services:
+#-------------------------------------------------------------------------
+  # ELK Stack (Elasticsearch, Logstash, Kibana) + Filebeat
+  #-------------------------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=false"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.9.0
+    container_name: logstash
+    volumes:
+      - ./infra/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.9.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./infra/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      # 모든 로그가 담긴 logs 폴더 전체를 마운트하여 관리를 단순화
+      - ./logs:/var/log/host_logs:ro
+    depends_on:
+      - logstash
+    networks:
+      - elk-network
+
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  app-network:
+    external: true # 이미 존재하는 네트워크에 연결
+  elk-network:
+    external: true # 이미 존재하는 네트워크에 연결
