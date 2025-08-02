@@ -34,7 +34,8 @@ FEEDBACK_TOPIC = 'analysis_feedback_topic'
 NOTIFICATION_TOPIC = 'notification_topic'
 
 logger.info("AI Service Script Started. Waiting for messages...")
-
+# --- 아래 한 줄을 테스트용으로 추가! ---
+logger.error("이것은 강제 에러 테스트입니다.", extra={"test_user": "Ansuhyeon"})
 consumer = None
 producer = None
 try:
