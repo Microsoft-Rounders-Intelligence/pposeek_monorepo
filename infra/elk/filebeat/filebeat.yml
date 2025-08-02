@@ -1,0 +1,51 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    # filebeat 컨테이너 내부의 경로를 가리킴
+    - /var/log/host_logs/nginx/*.log
+  fields:
+    service: nginx
+  fields_under_root: true
+  json.keys_under_root: true
+  json.add_error_key: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/host_logs/spring-boot/*.log
+  fields:
+    service: spring-boot
+  fields_under_root: true
+  json.keys_under_root: true
+  json.add_error_key: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/host_logs/nextjs/*.log
+  fields:
+    service: nextjs
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/host_logs/ai-service/*.log
+  fields:
+    service: ai-service
+  fields_under_root: true
+  json.keys_under_root: true
+  json.add_error_key: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/host_logs/kafka/*.log
+  fields:
+    service: kafka
+  fields_under_root: true
+
+# Logstash로 출력
+output.logstash:
+  hosts: ["logstash:5044"]

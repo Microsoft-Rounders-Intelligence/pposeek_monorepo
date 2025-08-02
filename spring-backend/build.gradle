@@ -103,6 +103,15 @@ dependencies {
     // ------------------------------------------------------------------------------
     // implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 지원 (필요 시 주석 해제)
     // implementation 'org.springframework.session:spring-session-data-redis'   // Redis 기반 세션 관리 (필요 시 주석 해제)
+
+
+
+    // ------------------------------------------------------------------------------
+    // Logstash Dependencies ( ELK 연동)
+    // ------------------------------------------------------------------------------
+
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
 }
 
 // ==============================================================================

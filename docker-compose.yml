@@ -1,18 +1,25 @@
 version: '3.8'
 
 services:
-
-
+  #-------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  #-------------------------------------------------------------------------
   nginx:
-    build: ./infra/nginx  
+    build: ./infra/nginx
     container_name: nginx
     ports:
       - "80:80"
     depends_on:
       - next-frontend
       - spring-backend
-      
+    volumes:
+      - ./logs/nginx:/var/log/nginx # 로그 디렉터리 마운트
+    networks:
+      - app-network
 
+  #-------------------------------------------------------------------------
+  # Spring Boot Backend (BFF)
+  #-------------------------------------------------------------------------
   spring-backend:
     build: ./spring-backend
     container_name: spring-backend
@@ -23,20 +30,34 @@ services:
         condition: service_healthy
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    volumes:
+      - ./logs/spring-boot:/var/log/app # 로그 디렉터리 마운트
+    networks:
+      - app-network
+      - elk-network
 
+  #-------------------------------------------------------------------------
+  # Python AI Service (Consumer)
+  #-------------------------------------------------------------------------
   ai-service:
     build: ./ai-service
     container_name: ai-service
-    command: python consumer.py  # 실행이 자동으로 안돼서 추가.
+    # Dockerfile에 CMD가 없거나 오버라이드 할 경우 사용
+    command: python consumer.py
     depends_on:
       kafka:
         condition: service_healthy
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      
-    
+    volumes:
+      - ./logs/ai-service:/var/log/app # 로그 디렉터리 마운트
+    networks:
+      - app-network
+      - elk-network
 
-
+  #-------------------------------------------------------------------------
+  # Kafka Service
+  #-------------------------------------------------------------------------
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -54,13 +75,84 @@ services:
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qo'
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+    volumes:
+      - ./logs/kafka:/var/log/kafka # 로그 디렉터리 마운트
+    networks:
+      - app-network
 
-  
-
+  #-------------------------------------------------------------------------
+  # Next.js Frontend(WEB)
+  #-------------------------------------------------------------------------
   next-frontend:
     build: ./next-frontend
     container_name: next-frontend
     ports:
       - "3000:3000"
-     
-      
+    volumes:
+      - ./logs/nextjs:/var/log/app # 로그 디렉터리 마운트
+    networks:
+      - app-network
+
+  #-------------------------------------------------------------------------
+  # ELK Stack (Elasticsearch, Logstash, Kibana) + Filebeat
+  #-------------------------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=false"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.9.0
+    container_name: logstash
+    volumes:
+      - ./infra/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.9.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./infra/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      # 모든 로그가 담긴 logs 폴더 전체를 마운트하여 관리를 단순화
+      - ./logs:/var/log/host_logs:ro
+    depends_on:
+      - logstash
+    networks:
+      - elk-network
+
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+  elk-network:
+    driver: bridge
