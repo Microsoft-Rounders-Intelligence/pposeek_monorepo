@@ -52,7 +52,7 @@ interface AnalysisFeedback {
 
 
 export function DashboardContent() {
-  const { user, hasPermission } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -80,13 +80,32 @@ export function DashboardContent() {
   // --- 최신 라이브러리에 맞게 웹소켓 연결 로직 수정 ---
   useEffect(() => {
     if (user && user.userId) {
+
+      const accessToken = localStorage.getItem("accessToken");
+
+      // 토큰이 없으면 연결하지 않음
+      if (!accessToken) {
+        console.error("WebSocket connection failed: Access Token not found.");
+        toast({
+          title: "인증 오류",
+          description: "로그인 정보가 없어 실시간 알림을 시작할 수 없습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
       const client = new Client({
         webSocketFactory: () => new SockJS("http://localhost:8080/ws"), // Nginx를 통해 접속
 
           //  연결 시 사용자 ID 헤더 추가
         connectHeaders: {
-          userId: user.userId.toString()
+          Authorization: `Bearer ${accessToken}`,
         },
+
+        // 개발 중 디버깅에 유용한 로그 활성화
+        debug: (str) => {
+          console.log(`STOMP: ${str}`);
+        },
+        
         onConnect: () => {
           console.log("WebSocket Connected!");
           // ------------------------------------------------------------------  문제중... 여기파트

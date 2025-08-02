@@ -1,5 +1,5 @@
 package com.rounders.pposeek.common.config;
-
+import com.rounders.pposeek.common.config.JwtConfig;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -9,20 +9,28 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.util.StringUtils;
+import lombok.RequiredArgsConstructor; // ⭐️ Lombok 어노테이션 임포트
+import lombok.extern.slf4j.Slf4j; // ⭐️ Lombok 로그 어노테이션 임포트
 
-import java.security.Principal;
 
+@Slf4j // ⭐️ 로그를 사용하기 위해 추가
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
+    private final JwtConfig jwtConfig;
+    private final UserDetailsService userDetailsService;
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // 클라이언트가 구독할 경로(prefix) 설정
-        config.enableSimpleBroker("/topic", "/queue","/user");
+        config.enableSimpleBroker("/topic", "/queue");
         // 메시지를 보낼 때 사용할 경로(prefix) 설정
         config.setApplicationDestinationPrefixes("/app");
 
@@ -44,21 +52,42 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                
+                StompHeaderAccessor accessor =
+                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+
+                // STOMP CONNECT 요청일 때만 JWT 인증을 수행합니다.
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // JWT 토큰에서 사용자 ID 추출 (URL 파라미터에서)
-                    String userId = accessor.getFirstNativeHeader("userId");
-                    
-                    if (userId != null) {
-                        // 사용자 Principal 설정
-                        accessor.setUser(new Principal() {
-                            @Override
-                            public String getName() {
-                                return userId;
+                    String bearerToken = accessor.getFirstNativeHeader("Authorization");
+                    System.out.println("WebSocket received Authorization header : " + bearerToken);
+
+                    // ⭐️ 2. JwtAuthenticationFilter의 로직을 거의 그대로 사용합니다.
+                    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+                        String jwt = bearerToken.substring(7);
+                        try {
+                            if (jwtConfig.isTokenValid(jwt)) {
+                                Integer userIdInt = jwtConfig.extractUserId(jwt);
+                                String userId = userIdInt != null ? String.valueOf(userIdInt) : null;
+
+                                if (userId != null) {
+                                    // UserDetailsService를 통해 UserDetails를 가져옵니다.
+                                    UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+                                    
+                                    // 인증 토큰을 생성합니다.
+                                    UsernamePasswordAuthenticationToken authentication =
+                                            new UsernamePasswordAuthenticationToken(
+                                                    userDetails,
+                                                    null,
+                                                    userDetails.getAuthorities()
+                                            );
+                                    
+                                    // 웹소켓 세션에 인증된 사용자를 설정합니다.
+                                    accessor.setUser(authentication);
+                                    System.out.println("✅ WebSocket User Authenticated: " + userId);
+                                }
                             }
-                        });
-                        System.out.println("🔗 WebSocket connected for user: " + userId);
+                        } catch (Exception e) {
+                            System.out.println("WebSocket JWT Authentication error:" + e.getMessage());
+                        }
                     }
                 }
                 return message;
