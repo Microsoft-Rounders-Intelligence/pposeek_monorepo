@@ -37,6 +37,7 @@ public class KafkaConsumerService {
             );
             
             System.out.println("✅ Feedback sent to user " + feedback.getUserId());
+            System.out.println("메시지 템플릿 내용 : " + messagingTemplate);
             
         } catch (Exception e) {
             System.out.println("❌ Error processing feedback " + e.getMessage() +  e);
@@ -59,6 +60,7 @@ public class KafkaConsumerService {
                 "/queue/notifications", 
                 notification
             );
+            System.out.println("메시지 템플릿 내용 : " + messagingTemplate);
             
             System.out.println("✅ Notification sent to user " + notification.getUserId());
             

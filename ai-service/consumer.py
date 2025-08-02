@@ -45,8 +45,6 @@ def analyze_resume(file_url):
     
     sys.stdout.flush()
     
-    time.sleep(10) # AI 분석 시뮬레이션
-    
     strengths = "프로젝트 경험을 수치적으로 표현한 점이 좋습니다."
     weaknesses = "지원하는 직무와의 연관성을 더 강조할 필요가 있습니다."
     
