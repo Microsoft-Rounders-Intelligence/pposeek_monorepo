@@ -247,11 +247,12 @@ export function DashboardContent() {
     }
 
     try {
-      const response = await resumeApi.analyze(formData, token) as { data: string }
       toast({
-        title: "분석 요청 완료",
-        description: response.data, // 서버에서 보낸 메시지를 표시
+        title: "💡 분석 요청 완료",
+        description: "잠시만 기다려주세요 !", // 서버에서 보낸 메시지를 표시
       })
+      
+      
       setResumeFile(null) // 분석 요청 후 파일 선택 초기화
     } catch (error) {
       toast({
