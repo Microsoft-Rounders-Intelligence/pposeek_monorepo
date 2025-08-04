@@ -1,0 +1,75 @@
+# Prometheus 알람 규칙 정의
+groups:
+  - name: pposeek-application-alerts
+    rules:
+      # Spring Boot 애플리케이션이 다운된 경우
+      - alert: SpringBootApplicationDown
+        expr: up{job="spring-boot-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spring Boot application is down"
+          description: "Spring Boot application {{ $labels.instance }} has been down for more than 1 minute."
+
+      # HTTP 응답 시간이 너무 긴 경우
+      - alert: HighHTTPResponseTime
+        expr: rate(http_server_requests_seconds_sum{job="spring-boot-app"}[5m]) / rate(http_server_requests_seconds_count{job="spring-boot-app"}[5m]) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP response time detected"
+          description: "HTTP response time is {{ $value }}s for {{ $labels.method }} {{ $labels.uri }} on {{ $labels.instance }}"
+
+      # HTTP 에러율이 높은 경우
+      - alert: HighHTTPErrorRate
+        expr: rate(http_server_requests_seconds_count{job="spring-boot-app",status=~"4..|5.."}[5m]) / rate(http_server_requests_seconds_count{job="spring-boot-app"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP error rate detected"
+          description: "HTTP error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # JVM 메모리 사용률이 높은 경우
+      - alert: HighJVMMemoryUsage
+        expr: jvm_memory_used_bytes{job="spring-boot-app"} / jvm_memory_max_bytes{job="spring-boot-app"} > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JVM memory usage"
+          description: "JVM memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} for area {{ $labels.area }}"
+
+      # CPU 사용률이 높은 경우
+      - alert: HighCPUUsage
+        expr: process_cpu_usage{job="spring-boot-app"} > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+  - name: infrastructure-alerts
+    rules:
+      # 디스크 사용률이 높은 경우
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_avail_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # 메모리 사용률이 높은 경우
+      - alert: HighSystemMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High system memory usage"
+          description: "System memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"

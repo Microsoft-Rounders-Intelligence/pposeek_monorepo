@@ -140,7 +140,8 @@ management:
     enabled-by-default: false                         # 보안을 위해 기본 비활성화
     web:
       exposure:
-        include: health,info,metrics,prometheus       # 필수 모니터링 엔드포인트만 노출
+        include: "*"       # 필수 모니터링 엔드포인트만 노출
+      base-path: /actuator
   endpoint:
     health:
       enabled: true                                   # 헬스체크 활성화
@@ -153,6 +154,8 @@ management:
     export:
       prometheus:
         enabled: true                                 # Prometheus 메트릭 내보내기
+  security:
+    enabled: false  # 🔑 이게 핵심! Actuator 보안 비활성화
 
 # ==============================================================================
 # Logging Configuration (개발 + 배포 겸용)

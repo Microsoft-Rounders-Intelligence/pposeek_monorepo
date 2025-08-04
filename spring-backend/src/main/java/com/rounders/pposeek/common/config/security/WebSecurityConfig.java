@@ -86,6 +86,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // 공개 엔드포인트 (기존 AuthController 경로 포함)
                 .requestMatchers(
+                    "/actuator/**",
                     "/api/v1/auth/**",      // 기존 인증 API 경로
                     "/api/auth/**",         // 추가 인증 경로
                     "/api/public/**",       // 공개 API
