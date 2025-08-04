@@ -16,6 +16,8 @@ services:
       - ./logs/nginx:/var/log/nginx # 로그 디렉터리 마운트
     networks:
       - app-network
+      
+
 
   #-------------------------------------------------------------------------
   # Spring Boot Backend (BFF)
@@ -34,7 +36,8 @@ services:
       - ./logs/spring-boot:/var/log/app # 로그 디렉터리 마운트
     networks:
       - app-network
-      - elk-network
+     
+      
 
   #-------------------------------------------------------------------------
   # Python AI Service (Consumer)
@@ -53,7 +56,8 @@ services:
       - ./logs/ai-service:/var/log/app # 로그 디렉터리 마운트
     networks:
       - app-network
-      - elk-network
+   
+      
 
   #-------------------------------------------------------------------------
   # Kafka Service
@@ -79,6 +83,8 @@ services:
       - ./logs/kafka:/var/log/kafka # 로그 디렉터리 마운트
     networks:
       - app-network
+      
+      
 
   #-------------------------------------------------------------------------
   # Next.js Frontend(WEB)
@@ -92,6 +98,8 @@ services:
       - ./logs/nextjs:/var/log/app # 로그 디렉터리 마운트
     networks:
       - app-network
+     
+      
 
   #-------------------------------------------------------------------------
   # ELK Stack (Elasticsearch, Logstash, Kibana) + Filebeat
@@ -108,7 +116,8 @@ services:
     ports:
       - "9200:9200"
     networks:
-      - elk-network
+      - app-network
+
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.9.0
@@ -120,7 +129,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elk-network
+      - app-network
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.9.0
@@ -132,7 +141,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elk-network
+      - app-network
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.9.0
@@ -145,7 +154,7 @@ services:
     depends_on:
       - logstash
     networks:
-      - elk-network
+      - app-network
   #-------------------------------------------------------------------------
   # Prometheus (메트릭 수집 서버)
   #-------------------------------------------------------------------------
@@ -167,7 +176,7 @@ services:
       - '--web.enable-lifecycle'
       - '--web.enable-admin-api'
     networks:
-      - monitoring-network
+      - app-network
     restart: unless-stopped
 
   #-------------------------------------------------------------------------
@@ -179,10 +188,12 @@ services:
     ports:
       - "3001:3000"  # 포트 충돌 방지를 위해 3001로 변경
     environment:
+      - GF_PATHS_DATA=/var/lib/grafana
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false  # 이것 추가
     volumes:
       - grafana-data:/var/lib/grafana
       # - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -190,7 +201,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - monitoring-network
+      - app-network
     restart: unless-stopped
 
   #-------------------------------------------------------------------------
@@ -211,7 +222,7 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     networks:
-      - monitoring-network
+      - app-network
     restart: unless-stopped
 
   #-------------------------------------------------------------------------
@@ -232,8 +243,22 @@ services:
     devices:
       - /dev/kmsg
     networks:
-      - monitoring-network
+      - app-network
     restart: unless-stopped
+  #-------------------------------------------------------------------------
+  # Kafka Exporter (Kafka 메트릭 수집)
+  #-------------------------------------------------------------------------
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    container_name: kafka-exporter
+    hostname: kafka-exporter
+    command: --kafka.server=kafka:9092
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+    networks:
+      - app-network
 
 volumes:
   esdata:
@@ -246,7 +271,5 @@ volumes:
 networks:
   app-network:
     driver: bridge
-  elk-network:
-    driver: bridge
-  monitoring-network:
-    driver: bridge
+  
+  

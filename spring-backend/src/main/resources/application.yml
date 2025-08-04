@@ -137,15 +137,15 @@ springdoc:
 # ==============================================================================
 management:
   endpoints:
-    enabled-by-default: false                         # 보안을 위해 기본 비활성화
+                   
     web:
       exposure:
-        include: "*"       # 필수 모니터링 엔드포인트만 노출
+        include: prometheus,health,info      # 필수 모니터링 엔드포인트만 노출
       base-path: /actuator
   endpoint:
     health:
       enabled: true                                   # 헬스체크 활성화
-      show-details: when-authorized                   # 인증된 사용자에게만 상세정보
+      show-details: always                 # 인증된 사용자에게만 상세정보
     metrics:
       enabled: true                                   # 메트릭 수집 활성화
     prometheus:  
