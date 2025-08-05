@@ -35,8 +35,9 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_sessions_activity ON user_sessions(last_activity);
 
--- 테스트 데이터 삽입 (간단한 비밀번호로 테스트용)
-INSERT INTO users (username, email, password_hash, display_name, is_active) VALUES
-('admin', 'admin@example.com', 'password123', '관리자', TRUE),
-('user1', 'user1@example.com', 'password123', '사용자1', TRUE),
-('testuser', 'test@pposeek.com', 'password123', '테스트사용자', TRUE);
+-- 테스트 데이터 삽입 (SHA-512 암호화된 비밀번호)
+-- password123 → SHA-512 해시값 (올바른 PPoseek Salt 포함)
+INSERT INTO users (username, email, password_hash, display_name, role, is_active) VALUES
+('admin', 'admin@example.com', '426CD7A39757AD6D303FDBB47EECA56A3588B6C79C67DC8A7DD5607CE7472BA1EEC04BA07192A8D5527BB573C8C79D43C6CC5250EE36520F7DD71A396A572481', '관리자', 'ADMIN', TRUE),
+('user1', 'user1@example.com', '426CD7A39757AD6D303FDBB47EECA56A3588B6C79C67DC8A7DD5607CE7472BA1EEC04BA07192A8D5527BB573C8C79D43C6CC5250EE36520F7DD71A396A572481', '사용자1', 'USER', TRUE),
+('testuser', 'test@pposeek.com', '426CD7A39757AD6D303FDBB47EECA56A3588B6C79C67DC8A7DD5607CE7472BA1EEC04BA07192A8D5527BB573C8C79D43C6CC5250EE36520F7DD71A396A572481', '테스트사용자', 'USER', TRUE);

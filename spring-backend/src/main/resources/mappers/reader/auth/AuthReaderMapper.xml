@@ -21,6 +21,7 @@
             email,
             password_hash as passwordHash,
             display_name as displayName,
+            role,
             created_at as createdAt,
             updated_at as updatedAt,
             is_active as isActive
@@ -54,6 +55,7 @@
             email,
             password_hash as passwordHash,
             display_name as displayName,
+            role,
             created_at as createdAt,
             updated_at as updatedAt,
             is_active as isActive
