@@ -24,10 +24,12 @@ spring:
   # 데이터소스 설정 (H2 In-Memory Database)
   # ------------------------------------------------------------------------------
   datasource:
-    url: jdbc:h2:mem:testdb                            # H2 메모리 데이터베이스 URL
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE  # H2 메모리 데이터베이스 URL (고정)
     driver-class-name: org.h2.Driver                   # H2 JDBC 드라이버
     username: sa                                       # 데이터베이스 사용자명
     password: password                                 # 데이터베이스 비밀번호
+    hikari:
+      jdbc-url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE  # HikariCP용 URL 고정
   # ==============================================================================
   # Kafka Configuration
   # ==============================================================================
@@ -63,6 +65,9 @@ spring:
       path: /h2-console                                # H2 콘솔 접근 경로
       settings:
         web-allow-others: true                         # 외부 접근 허용 (개발환경만)
+        # H2 콘솔에서 사용할 고정 URL 설정
+        trace: false                                   # 트레이스 비활성화
+        web-admin-password: ""                         # 관리자 패스워드 (빈 값으로 설정)
         
   # ------------------------------------------------------------------------------
   # SQL 초기화 설정
@@ -108,15 +113,6 @@ server:
   error:
     include-message: always                           # 에러 메시지 포함
     include-stacktrace: on_param                      # 스택 트레이스 포함 조건
-
-# ==============================================================================
-# JWT Configuration
-# ==============================================================================
-jwt:
-  secret: pposeekSecretKey2025ForJwtTokenGeneration   # JWT 서명 키 (실제 운영에서는 환경변수 사용)
-  expiration: 86400000                                # JWT 만료 시간 (24시간, 밀리초)
-  refresh-expiration: 604800000                       # Refresh Token 만료 시간 (7일, 밀리초)
-  issuer: pposeek-api                                 # JWT 발급자
 
 # ==============================================================================
 # Spring Doc (Swagger) Configuration
@@ -186,4 +182,21 @@ logging:
       max-history: 30                                 # 보관 일수
       total-size-cap: 100MB                           # 전체 최대 크기
 
+# ==============================================================================
+# Encryption & Security Configuration
+# ==============================================================================
+app:
+  encryption:
+    # 개인정보 암호화 키 (AES-256용)
+    personal-key: ${PERSONAL_DATA_ENCRYPTION_KEY:pposeek-personal-data-encryption-key-for-aes256-must-be-32-chars-minimum}
+    # 이력서 암호화 키 (AES-256용)  
+    resume-key: ${RESUME_DATA_ENCRYPTION_KEY:pposeek-resume-data-encryption-key-for-aes256-must-be-32-chars-minimum}
+    # 비밀번호 해시용 Salt 키 (SHA-512용)
+    salt-key: ${PASSWORD_SALT_KEY:pposeek-password-salt-key-for-sha512-hashing-must-be-32-chars-minimum}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}        # 프론트엔드 URL (CORS용)
 
+# JWT 토큰 설정
+jwt:
+  secret: ${JWT_SECRET:pposeek-jwt-secret-key-for-token-signing-must-be-32-chars-minimum}
+  expiration: ${JWT_EXPIRATION:86400}                 # 24시간 (초 단위)
