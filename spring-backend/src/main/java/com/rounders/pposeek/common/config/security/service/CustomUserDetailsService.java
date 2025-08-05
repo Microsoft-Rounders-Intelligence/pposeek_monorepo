@@ -50,7 +50,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         UserDto user;
 
-        //  이메일 형식인지, ID 형식인지 판별하여 조회하는 로직으로 변경
+        //  이메일 형식인지, username인지, 숫자 ID인지 판별하여 조회하는 로직으로 변경
         if (usernameOrEmail.contains("@")) {
             // 이메일로 사용자 조회
             user = authPersistenceAdapter.selectUserByEmail(usernameOrEmail);
@@ -59,17 +59,22 @@ public class CustomUserDetailsService implements UserDetailsService {
                 throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + usernameOrEmail);
             }
         } else {
-            // 숫자 ID로 사용자 조회
-            try {
-                Integer userId = Integer.parseInt(usernameOrEmail);
-                user = authPersistenceAdapter.selectUserById(userId);
-                if (user == null) {
-                    log.warn("사용자 ID를 찾을 수 없음: {}", userId);
-                    throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+            // 먼저 username으로 조회 시도
+            user = authPersistenceAdapter.selectUserForLogin(usernameOrEmail);
+            
+            // username으로 찾지 못했다면 숫자 ID로 조회 시도
+            if (user == null) {
+                try {
+                    Integer userId = Integer.parseInt(usernameOrEmail);
+                    user = authPersistenceAdapter.selectUserById(userId);
+                    if (user == null) {
+                        log.warn("사용자 ID를 찾을 수 없음: {}", userId);
+                        throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+                    }
+                } catch (NumberFormatException e) {
+                    log.warn("username으로도 숫자 ID로도 찾을 수 없음: {}", usernameOrEmail);
+                    throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + usernameOrEmail);
                 }
-            } catch (NumberFormatException e) {
-                log.error("잘못된 사용자 ID 형식: {}", usernameOrEmail);
-                throw new UsernameNotFoundException("잘못된 사용자 ID 형식: " + usernameOrEmail);
             }
         }
         

@@ -19,7 +19,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -32,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.rounders.pposeek.common.config.security.filter.JwtAuthenticationFilter;
 import com.rounders.pposeek.common.config.security.service.CustomUserDetailsService;
+import com.rounders.pposeek.common.utility.crypto.PPoseekPasswordEncoder;
 
 import java.util.Arrays;
 
@@ -54,6 +54,7 @@ public class WebSecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final PPoseekPasswordEncoder pposeekPasswordEncoder;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -156,7 +157,7 @@ public class WebSecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12); // 강도 12 (보안성과 성능 균형)
+        return pposeekPasswordEncoder; // 커스텀 SHA-512 인코더 사용
     }
 
     /**
@@ -180,7 +181,7 @@ public class WebSecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(pposeekPasswordEncoder); // 커스텀 인코더 사용
         return authProvider;
     }
 }

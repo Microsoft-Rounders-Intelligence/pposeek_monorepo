@@ -9,32 +9,36 @@ package com.rounders.pposeek.common.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.rounders.pposeek.common.utility.crypto.key.SecureKeyManager;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 /**
  * 간단한 JWT 토큰 관리 클래스.
- * 회원가입/로그인에서만 사용
+ * SecureKeyManager를 통해 안전한 키 관리
  * 
  * @author siunkimm@gmail.com
  * @since 2025
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtConfig {
 
-    @Value("${jwt.secret:pposeek-secret-key-for-jwt-token-generation-must-be-longer-than-32-characters}")
-    private String secretKey;
+    private final SecureKeyManager secureKeyManager;
 
     @Value("${jwt.expiration:86400}") // 24시간 (초 단위)
     private Long expiration;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        String jwtSecret = secureKeyManager.getJwtSecret();
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public long getExpiration() {
