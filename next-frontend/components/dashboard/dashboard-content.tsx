@@ -34,6 +34,15 @@ import { useToast } from "@/hooks/use-toast"
 import { resumeApi } from "@/lib/api/resume"
 import SockJS from "sockjs-client"
 import { Client } from "@stomp/stompjs"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 
 interface JobPosting {
   id: string
@@ -115,6 +124,16 @@ export function DashboardContent() {
       status: "completed",
     },
   ])
+  // ⭐️ 1. 모달 상태 관리를 위한 state 추가
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [selectedCoverLetter, setSelectedCoverLetter] = useState<CoverLetter | null>(null)
+
+  // ⭐️ 2. "보기" 버튼 클릭 시 모달을 여는 함수
+  const handleViewCoverLetter = (coverLetter: CoverLetter) => {
+    setSelectedCoverLetter(coverLetter)
+    setIsViewModalOpen(true)
+  }
+  
 
   // 기존 상태들
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -552,7 +571,9 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
                 <div className="space-y-4">
                   <div className="text-sm text-gray-600 line-clamp-3">{coverLetter.content.slice(0, 150)}...</div>
                   <div className="flex space-x-2">
-                    <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                    <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                      onClick={() => handleViewCoverLetter(coverLetter)}
+                    >
                       <FileText className="h-4 w-4 mr-2" />
                       보기
                     </Button>
@@ -566,7 +587,32 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
             </Card>
           ))}
         </div>
+
+        {/* ⭐️ 4. 자기소개서 보기 모달 (Dialog) 추가 */}
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>{selectedCoverLetter?.jobTitle}</DialogTitle>
+              <DialogDescription>
+                {selectedCoverLetter?.company} | 작성일: {selectedCoverLetter?.createdAt}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="prose max-w-none h-[60vh] overflow-y-auto p-4 bg-gray-50 rounded-md">
+              <pre className="whitespace-pre-wrap text-sm font-sans">{selectedCoverLetter?.content}</pre>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  닫기
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+      
+
+      
     )
   }
 
