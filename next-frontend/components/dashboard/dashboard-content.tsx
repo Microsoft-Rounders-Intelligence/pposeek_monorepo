@@ -68,6 +68,7 @@ interface AnalysisFeedback {
   userId: string
   strengths: string
   weaknesses: string
+  suggestions: string
   status: string
 }
 
@@ -139,7 +140,7 @@ export function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: "지원자님의 선택한 직무와 이력서에 맞는 자기소개서에요! 수정하고 싶은 부분이 있으시면 말씀해주세요.",
+      content: "지원자님의 이력서에 맞는 자기소개서에요! \r\n원하시는 직무나 기업이 없었다면, 저에게 말씀해주세요! 😊\n\n 자기소개서 작성에 수정이 필요하시면 언제든지 말씀해주세요! ✨",
     },
   ])
   const [chatInput, setChatInput] = useState("")
@@ -497,6 +498,70 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
     return ((currentStep - 1) / 4) * 100;
   };
 
+  // 중복 표현 확인 함수
+  const checkDuplicateExpressions = (text: string) => {
+    if (!text.trim()) return { count: 0, duplicates: [], percentage: 0 }
+
+    // 텍스트를 문장 단위로 분리
+    const sentences = text
+      .split(/[.!?。]/g)
+      .map(s => s.trim().replace(/\s+/g, ' '))
+      .filter(s => s.length > 5) // 5자 이하 짧은 문장 제외
+
+    if (sentences.length === 0) return { count: 0, duplicates: [], percentage: 0 }
+
+    // 유사 문장 찾기 (단순화된 방식)
+    const duplicates = []
+    const checked = new Set<number>()
+
+    for (let i = 0; i < sentences.length - 1; i++) {
+      if (checked.has(i)) continue
+      
+      const sentence1 = sentences[i].toLowerCase()
+      const similarSentences = [sentence1]
+
+      for (let j = i + 1; j < sentences.length; j++) {
+        if (checked.has(j)) continue
+        
+        const sentence2 = sentences[j].toLowerCase()
+        
+        // 단어 기반 유사도 계산 (간단한 방식)
+        const words1 = sentence1.split(/\s+/)
+        const words2 = sentence2.split(/\s+/)
+        
+        const commonWords = words1.filter(word => 
+          word.length > 1 && words2.includes(word)
+        ).length
+        
+        const totalWords = Math.max(words1.length, words2.length)
+        const similarity = commonWords / totalWords
+        
+        // 유사도 60% 이상이면 중복으로 판단
+        if (similarity >= 0.6) {
+          similarSentences.push(sentence2)
+          checked.add(j)
+        }
+      }
+
+      if (similarSentences.length > 1) {
+        duplicates.push({
+          sentences: similarSentences,
+          count: similarSentences.length
+        })
+        checked.add(i)
+      }
+    }
+
+    const totalDuplicateCount = duplicates.reduce((sum, group) => sum + group.count - 1, 0)
+    const percentage = sentences.length > 0 ? (totalDuplicateCount / sentences.length * 100) : 0
+
+    return {
+      count: totalDuplicateCount,
+      duplicates: duplicates,
+      percentage: Math.round(percentage)
+    }
+  }
+
   // 대시보드 렌더링
   const renderDashboard = () => {
     return (
@@ -629,7 +694,7 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
                 <span>이력서 분석</span>
                 {stepStatus.step1 && <CheckCircle className="h-5 w-5 text-green-500" />}
               </CardTitle>
-              <CardDescription>PDF 이력서를 업로드하면 AI가 분석하여 강점과 개선점을 알려드립니다.</CardDescription>
+              <CardDescription>PDF 이력서를 업로드하면 AI가 분석하여 피드백을 알려드립니다.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -683,13 +748,22 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
                         {analysisResult ? analysisResult.strengths : "분석 대기 중..."}
                       </p>
                     </div>
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="font-semibold text-red-800 mb-2 flex items-center">
+                        <Target className="h-4 w-4 mr-2" />
+                        약점
+                      </h4>
+                      <p className="text-red-700">
+                    {analysisResult ? analysisResult.weaknesses : "분석 대기 중..."}
+                    </p>
+                    </div>
                     <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                       <h4 className="font-semibold text-yellow-800 mb-2 flex items-center">
                         <Lightbulb className="h-4 w-4 mr-2" />
                         개선점
                       </h4>
                       <p className="text-yellow-700">
-                        {analysisResult ? analysisResult.weaknesses : "분석 대기 중..."}
+                        {analysisResult ? analysisResult.suggestions : "분석 대기 중..."}
                       </p>
                     </div>
                   </div>
@@ -921,10 +995,12 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
                     <CardContent className="flex flex-col h-full p-4">
                       <div className="flex-1 overflow-y-auto space-y-4 mb-4 bg-gray-50 p-3 rounded-md">
                         {chatMessages.map((message, index) => (
-                          <div
+                            <div
                             key={index}
                             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                          >
+                            style={{ whiteSpace: 'pre-line' }}
+                            >
+                            
                             <div
                               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
                                 message.role === "user" ? "bg-emerald-600 text-white" : "bg-white text-gray-900"
@@ -966,6 +1042,7 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
               .filter((word) => word.length > 0).length,
           }
         }
+        const duplicationAnalysis = checkDuplicateExpressions(finalCoverLetter)
 
         // 자기소개서 평가 함수
         const evaluateCoverLetter = (text: string) => {
@@ -1001,7 +1078,7 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
         const evaluation = evaluateCoverLetter(finalCoverLetter)
 
         return (
-          <Card className="w-full">
+          <Card className="w-full min-h-[700px]">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <div className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-bold">STEP 5</div>
@@ -1014,104 +1091,139 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 자기소개서 편집 */}
-                <div className="space-y-4">
+                <div className="space-y-4 ">
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg">자기소개서 편집</h3>
                     <div className="text-sm text-gray-600 space-x-4">
-                      <span>전체: {charCount.total}자</span>
+                      <span>공백포함: {charCount.total}자</span>
                       <span>공백제외: {charCount.withoutSpaces}자</span>
-                      <span>단어: {charCount.words}개</span>
+                      
                     </div>
                   </div>
                   <Textarea
                     placeholder="자기소개서를 작성하세요..."
                     value={finalCoverLetter}
                     onChange={(e) => setFinalCoverLetter(e.target.value)}
-                    className="min-h-[400px]"
+                    className="min-h-[500px]"
                   />
-
-                  {/* 실시간 평가 */}
-                  <div className="bg-gray-50 p-4 rounded-lg border">
-                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center">
-                      📊 자기소개서 평가 (점수: {Math.round(evaluation.score)}점)
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">길이:</span>
-                        <span
-                          className={`ml-2 font-medium ${
-                            evaluation.length === "적절" ? "text-green-600" : "text-orange-600"
-                          }`}
-                        >
-                          {evaluation.length}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">구성:</span>
-                        <span
-                          className={`ml-2 font-medium ${
-                            evaluation.structure === "좋음" ? "text-green-600" : "text-orange-600"
-                          }`}
-                        >
-                          {evaluation.structure}
-                        </span>
-                      </div>
-                      {selectedJob && (
-                        <div>
-                          <span className="text-gray-600">키워드:</span>
-                          <span className="ml-2 font-medium text-blue-600">
-                            {evaluation.keywords}/{selectedJob.tags.length}개
-                          </span>
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-gray-600">권장:</span>
-                        <span className="ml-2 font-medium text-gray-700">800-1500자</span>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="flex space-x-2">
-                    <Button
+                      <Button
                       variant="outline"
                       className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 bg-transparent"
-                    >
+                      >
                       <Download className="h-4 w-4 mr-2" />
                       다운로드
-                    </Button>
-                  </div>
-                </div>
-
-                {/* 작성 도움말 */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">작성 도움말</h3>
-                  <div className="space-y-3">
-                    <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <h4 className="font-semibold text-emerald-800 mb-2">✅ 체크리스트</h4>
-                      <ul className="text-emerald-700 text-sm space-y-1">
-                        <li>□ 지원 동기가 명확히 드러나는가?</li>
-                        <li>□ 구체적인 경험과 성과가 포함되었는가?</li>
-                        <li>□ 직무 요구사항과 연결되었는가?</li>
-                        <li>□ 회사에 대한 이해가 드러나는가?</li>
-                        <li>□ 향후 계획이 제시되었는가?</li>
-                      </ul>
+                      </Button>
                     </div>
+                  
+                  </div>
+                  
 
+                {/* 자기소개서 평가 */}
+                  <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">자기소개서 평가</h3>
+                  <div className="space-y-3">
                     {analysisResult && (
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                         <h4 className="font-semibold text-blue-800 mb-2">💪 활용할 강점</h4>
                         <p className="text-blue-700 text-sm">{analysisResult.strengths}</p>
                       </div>
                     )}
+                    
+                    {/* 실시간 평가 */}
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center">
+                        📊 자기소개서 평가 (점수: {Math.round(evaluation.score)}점)
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                          <span className="text-gray-600">길이:</span>
+                          <span
+                            className={`font-medium ${
+                              evaluation.length === "적절" ? "text-green-600" : "text-orange-600"
+                            }`}
+                          >
+                            {evaluation.length}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                          <span className="text-gray-600">구성:</span>
+                          <span
+                            className={`font-medium ${
+                              evaluation.structure === "좋음" ? "text-green-600" : "text-orange-600"
+                            }`}
+                          >
+                            {evaluation.structure}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                          <span className="text-gray-600">권장:</span>
+                          <span className="font-medium text-gray-700">800-1500자</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                          <span className="text-gray-600">키워드:</span>
+                          <span className="font-medium text-gray-700">유니크</span>
+                        </div>
+                        
+                      </div>
+                    </div>
 
+                    
+
+                    {/* ⭐ [수정됨] 중복 표현 분석 결과 UI */}
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center">📝 중복 표현 분석</h4>
+                      <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                        <span className="text-gray-600 text-sm">중복 문장 수:</span>
+                        <Badge
+                          className={`${
+                            duplicationAnalysis.count > 0 ? "bg-orange-100 text-orange-800" : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {duplicationAnalysis.count}개
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 text-sm">중복률:</span>
+                        <Badge
+                          className={`${
+                            duplicationAnalysis.percentage > 10 ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {duplicationAnalysis.percentage}%
+                        </Badge>
+                      </div>
+                      {duplicationAnalysis.duplicates.length > 0 && (
+                        <div className="mt-4">
+                          <h5 className="font-medium text-gray-700 mb-2 text-sm">의심되는 중복 표현</h5>
+                          <div className="max-h-40 overflow-y-auto space-y-3 bg-white p-3 rounded">
+                            {duplicationAnalysis.duplicates.map((group, index) => (
+                              <div key={index} className="text-xs text-gray-600 border-l-2 border-orange-300 pl-2">
+                                <p className="font-semibold">그룹 {index + 1} (유사도 높음):</p>
+                                <ul className="list-disc list-inside">
+                                  {group.sentences.map((sentence, sIndex) => (
+                                    <li key={sIndex}>"{sentence}"</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     {selectedJob && (
-                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 min-h-[200px]">
                         <h4 className="font-semibold text-purple-800 mb-2">🎯 직무 연관성</h4>
                         <p className="text-purple-700 text-sm">{selectedJob.recommendationReason}</p>
                       </div>
                     )}
+                      
+                    
+
+                    
                   </div>
-                </div>
+                  </div>
+                  
               </div>
             </CardContent>
           </Card>
@@ -1145,11 +1257,11 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
               ></div>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
-              <span className={currentStep === 1 ? "font-semibold text-emerald-600" : ""}>STEP 1. 이력서 분석</span>
-              <span className={currentStep === 2 ? "font-semibold text-emerald-600" : ""}>STEP 2. 맞춤 공고</span>
-              <span className={currentStep === 3 ? "font-semibold text-emerald-600" : ""}>STEP 3. 직무 선택</span>
-              <span className={currentStep === 4 ? "font-semibold text-emerald-600" : ""}>STEP 4. AI 상담</span>
-              <span className={currentStep === 5 ? "font-semibold text-emerald-600" : ""}>STEP 5. 자기소개서</span>
+              <span className={currentStep === 1 ? "font-semibold text-emerald-600" : ""}>1. 이력서 분석</span>
+              <span className={currentStep === 2 ? "font-semibold text-emerald-600" : ""}>2. 맞춤 공고</span>
+              <span className={currentStep === 3 ? "font-semibold text-emerald-600" : ""}>3. 직무 선택</span>
+              <span className={currentStep === 4 ? "font-semibold text-emerald-600" : ""}>4. AI 상담</span>
+              <span className={currentStep === 5 ? "font-semibold text-emerald-600" : ""}>5. 자기소개서</span>
             </div>
           </div>
         </CardContent>

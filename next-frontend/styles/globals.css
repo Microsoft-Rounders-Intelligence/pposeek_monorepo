@@ -5,6 +5,7 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+    white-space: pre-line;
   }
 }
 
