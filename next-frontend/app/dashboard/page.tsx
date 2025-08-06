@@ -16,9 +16,9 @@ export default function JobAIPlatform() {
     }
   }, [user, router])
 
-  //if (!user) {
-    //return null
-  //}
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

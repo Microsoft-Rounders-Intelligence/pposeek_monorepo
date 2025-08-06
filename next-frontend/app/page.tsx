@@ -9,9 +9,9 @@ export default function HomePage() {
   const router = useRouter()
 
   // 사용자가 로그인되어 있으면 대시보드로, 아니면 랜딩 페이지로
-  //if (user) {
+  if (user) {
     return <JobAIPlatform />
-  //}
+  }
 
-  //return <LandingPage />
+  return <LandingPage />
 }
