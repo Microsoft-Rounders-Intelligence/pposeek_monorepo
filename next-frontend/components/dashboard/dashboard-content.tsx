@@ -1269,10 +1269,13 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
 
       {/* 현재 단계 렌더링 */}
       {renderStep()}
-
+      <div className="max-w-6xl mx-auto p-6 space-y-6 pb-24"> 
       {/* 네비게이션 버튼 */}
-      <Card>
-        <CardContent className="p-4">
+      
+    
+      
+      <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white shadow-t-lg">
+        <CardContent className="p-4 max-w-6xl mx-auto">
           <div className="flex justify-between">
             <Button
               onClick={goToPrevStep}
@@ -1284,9 +1287,8 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
               <span>이전 단계</span>
             </Button>
 
-            <div className="text-center space-y-2">
-              <p className="text-sm text-gray-600">{currentStep} / 5 단계</p>
-              <div className="text-xs text-gray-400">임시: 프론트엔드 테스트용 (개발 완료 후 제거)</div>
+            <div className="text-center space-y-2 mt-3"> {/* Added mt-4 for margin-top */}
+              <p className="text-bg text-gray-600">{currentStep} / 5 단계</p>
             </div>
 
             {currentStep === 5 ? (
@@ -1310,6 +1312,7 @@ ${selectedJob ? `특히 ${selectedJob.tags[selectedJob.tags.length - 1]} 관련 
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
