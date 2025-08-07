@@ -1,3 +1,13 @@
+# --- Kafka & Logging ---
 kafka-python==2.0.2
 python-json-logger
-# S3 추가.
+
+# --- Azure Services ---
+azure-storage-blob
+openai
+python-dotenv
+
+# --- PDF & Database ---
+PyMuPDF
+mysql-connector-python
+requests

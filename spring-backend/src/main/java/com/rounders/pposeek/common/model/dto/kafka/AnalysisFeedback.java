@@ -7,5 +7,6 @@ public class AnalysisFeedback {
     private String userId;
     private String strengths;
     private String weaknesses;
+    private String suggestions;
     private String status;
 }

@@ -200,3 +200,11 @@ app:
 jwt:
   secret: ${JWT_SECRET:pposeek-jwt-secret-key-for-token-signing-must-be-32-chars-minimum}
   expiration: ${JWT_EXPIRATION:86400}                 # 24시간 (초 단위)
+
+# ==============================================================================
+# Azure Blob Storage Configuration
+# ==============================================================================
+azure:
+  blob:
+    connection-string: ${AZURE_BLOB_CONN_STRING}
+    container-name: ${AZURE_BLOB_CONTAINER}

@@ -16,8 +16,6 @@ services:
       - ./logs/nginx:/var/log/nginx # 로그 디렉터리 마운트
     networks:
       - app-network
-      
-
 
   #-------------------------------------------------------------------------
   # Spring Boot Backend (BFF)
@@ -30,14 +28,16 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    # 👇 [수정됨] .env 파일을 읽어오도록 env_file 설정 추가
+    env_file:
+      - ./.env
+    # 👇 [유지] 컨테이너 간 통신 설정은 여기에 남겨두는 것이 좋습니다.
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./logs/spring-boot:/var/log/app # 로그 디렉터리 마운트
     networks:
       - app-network
-     
-      
 
   #-------------------------------------------------------------------------
   # Python AI Service (Consumer)
@@ -45,19 +45,19 @@ services:
   ai-service:
     build: ./ai-service
     container_name: ai-service
-    # Dockerfile에 CMD가 없거나 오버라이드 할 경우 사용
-    command: python consumer.py
     depends_on:
       kafka:
         condition: service_healthy
+    # 👇 [수정됨] .env 파일을 읽어오도록 env_file 설정 추가
+    env_file:
+      - ./.env
+   
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./logs/ai-service:/var/log/app # 로그 디렉터리 마운트
     networks:
       - app-network
-   
-      
 
   #-------------------------------------------------------------------------
   # Kafka Service
@@ -83,8 +83,6 @@ services:
       - ./logs/kafka:/var/log/kafka # 로그 디렉터리 마운트
     networks:
       - app-network
-      
-      
 
   #-------------------------------------------------------------------------
   # Next.js Frontend(WEB)
@@ -104,161 +102,157 @@ services:
   #-------------------------------------------------------------------------
   # ELK Stack (Elasticsearch, Logstash, Kibana) + Filebeat
   #-------------------------------------------------------------------------
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
-    container_name: elasticsearch
-    environment:
-      - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "xpack.security.enabled=false"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      - app-network
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+  #   container_name: elasticsearch
+  #   environment:
+  #     - "discovery.type=single-node"
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #     - "xpack.security.enabled=false"
+  #   volumes:
+  #     - esdata:/usr/share/elasticsearch/data
+  #   ports:
+  #     - "9200:9200"
+  #   networks:
+  #     - app-network
 
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.9.0
+  #   container_name: logstash
+  #   volumes:
+  #     - ./infra/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+  #   ports:
+  #     - "5044:5044"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - app-network
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.9.0
-    container_name: logstash
-    volumes:
-      - ./infra/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
-    ports:
-      - "5044:5044"
-    depends_on:
-      - elasticsearch
-    networks:
-      - app-network
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.9.0
+  #   container_name: kibana
+  #   ports:
+  #     - "5601:5601"
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - app-network
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.9.0
-    container_name: kibana
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - app-network
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.9.0
-    container_name: filebeat
-    user: root
-    volumes:
-      - ./infra/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      # 모든 로그가 담긴 logs 폴더 전체를 마운트하여 관리를 단순화
-      - ./logs:/var/log/host_logs:ro
-    depends_on:
-      - logstash
-    networks:
-      - app-network
+  # filebeat:
+  #   image: docker.elastic.co/beats/filebeat:8.9.0
+  #   container_name: filebeat
+  #   user: root
+  #   volumes:
+  #     - ./infra/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+  #     - ./logs:/var/log/host_logs:ro
+  #   depends_on:
+  #     - logstash
+  #   networks:
+  #     - app-network
   #-------------------------------------------------------------------------
   # Prometheus (메트릭 수집 서버)
   #-------------------------------------------------------------------------
-  prometheus:
-    image: prom/prometheus:v2.45.0
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./infra/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./infra/monitoring/prometheus/rules:/etc/prometheus/rules:ro
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=15d'  # 데이터 보존 기간
-      - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
-    networks:
-      - app-network
-    restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus:v2.45.0
+  #   container_name: prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./infra/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - ./infra/monitoring/prometheus/rules:/etc/prometheus/rules:ro
+  #     - prometheus-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--storage.tsdb.retention.time=15d'  # 데이터 보존 기간
+  #     - '--web.enable-lifecycle'
+  #     - '--web.enable-admin-api'
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
 
   #-------------------------------------------------------------------------
   # Grafana (데이터 시각화)
   #-------------------------------------------------------------------------
-  grafana:
-    image: grafana/grafana:10.0.0
-    container_name: grafana
-    ports:
-      - "3001:3000"  # 포트 충돌 방지를 위해 3001로 변경
-    environment:
-      - GF_PATHS_DATA=/var/lib/grafana
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false  # 이것 추가
-    volumes:
-      - grafana-data:/var/lib/grafana
-      # - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      # - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    depends_on:
-      - prometheus
-    networks:
-      - app-network
-    restart: unless-stopped
+  # grafana:
+  #   image: grafana/grafana:10.0.0
+  #   container_name: grafana
+  #   ports:
+  #     - "3001:3000"  # 포트 충돌 방지를 위해 3001로 변경
+  #   environment:
+  #     - GF_PATHS_DATA=/var/lib/grafana
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin123
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #     - GF_INSTALL_PLUGINS=grafana-piechart-panel
+  #     - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false  # 이것 추가
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #   depends_on:
+  #     - prometheus
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
 
   #-------------------------------------------------------------------------
   # Node Exporter (시스템 메트릭 수집)
   #-------------------------------------------------------------------------
-  node-exporter:
-    image: prom/node-exporter:v1.6.0
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    networks:
-      - app-network
-    restart: unless-stopped
+  # node-exporter:
+  #   image: prom/node-exporter:v1.6.0
+  #   container_name: node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.rootfs=/rootfs'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
 
   #-------------------------------------------------------------------------
   # cAdvisor (컨테이너 메트릭 수집)
   #-------------------------------------------------------------------------
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.47.0
-    container_name: cadvisor
-    ports:
-      - "8081:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    privileged: true
-    devices:
-      - /dev/kmsg
-    networks:
-      - app-network
-    restart: unless-stopped
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:v0.47.0
+  #   container_name: cadvisor
+  #   ports:
+  #     - "8081:8080"
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:ro
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #   privileged: true
+  #   devices:
+  #     - /dev/kmsg
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
   #-------------------------------------------------------------------------
   # Kafka Exporter (Kafka 메트릭 수집)
   #-------------------------------------------------------------------------
-  kafka-exporter:
-    image: danielqsj/kafka-exporter:v1.7.0
-    container_name: kafka-exporter
-    hostname: kafka-exporter
-    command: --kafka.server=kafka:9092
-    ports:
-      - "9308:9308"
-    depends_on:
-      - kafka
-    networks:
-      - app-network
+  # kafka-exporter:
+  #   image: danielqsj/kafka-exporter:v1.7.0
+  #   container_name: kafka-exporter
+  #   hostname: kafka-exporter
+  #   command: --kafka.server=kafka:9092
+  #   ports:
+  #     - "9308:9308"
+  #   depends_on:
+  #     - kafka
+  #   networks:
+  #     - app-network
 
 volumes:
   esdata:

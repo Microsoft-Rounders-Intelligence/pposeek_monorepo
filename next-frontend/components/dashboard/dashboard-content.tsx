@@ -332,11 +332,7 @@ export function DashboardContent() {
     }
 
     try {
-      toast({
-        title: "💡 분석 요청 시작",
-        description: "이력서를 분석 중입니다. 잠시만 기다려주세요!",
-      })
-
+     
       const response = (await resumeApi.analyze(formData, token)) as { data: string }
 
       toast({
