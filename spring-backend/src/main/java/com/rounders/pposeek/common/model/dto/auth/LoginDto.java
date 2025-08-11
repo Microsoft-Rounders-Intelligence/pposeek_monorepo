@@ -38,4 +38,9 @@ public class LoginDto {
      */
     @NotBlank(message = "비밀번호는 필수입니다")
     private String password;
+    
+    /**
+     * 세션 이름 (선택사항)
+     */
+    private String sessionName;
 }

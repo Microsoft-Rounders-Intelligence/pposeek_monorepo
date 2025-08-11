@@ -21,15 +21,19 @@ spring:
   #   active: dev   # 프로파일 분리 없이 단일 설정 사용
   
   # ------------------------------------------------------------------------------
-  # 데이터소스 설정 (H2 In-Memory Database)
+  # 데이터소스 설정 (MySQL Database)
   # ------------------------------------------------------------------------------
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE  # H2 메모리 데이터베이스 URL (고정)
-    driver-class-name: org.h2.Driver                   # H2 JDBC 드라이버
-    username: sa                                       # 데이터베이스 사용자명
-    password: password                                 # 데이터베이스 비밀번호
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DB:User}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:password}
     hikari:
-      jdbc-url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE  # HikariCP용 URL 고정
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   # ==============================================================================
   # Kafka Configuration
   # ==============================================================================
@@ -57,24 +61,11 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     
   # ------------------------------------------------------------------------------
-  # H2 Database Console 설정 (개발용)
-  # ------------------------------------------------------------------------------
-  h2:
-    console:
-      enabled: true                                    # H2 웹 콘솔 활성화
-      path: /h2-console                                # H2 콘솔 접근 경로
-      settings:
-        web-allow-others: true                         # 외부 접근 허용 (개발환경만)
-        # H2 콘솔에서 사용할 고정 URL 설정
-        trace: false                                   # 트레이스 비활성화
-        web-admin-password: ""                         # 관리자 패스워드 (빈 값으로 설정)
-        
-  # ------------------------------------------------------------------------------
   # SQL 초기화 설정
   # ------------------------------------------------------------------------------
   sql:
     init:
-      mode: always                                     # SQL 스크립트 실행 모드 (always, embedded, never)
+      mode: never                                      # MySQL에서는 스키마를 직접 관리하므로 비활성화
       schema-locations: classpath:schema.sql           # DDL 스크립트 위치
       continue-on-error: false                         # 에러 발생 시 중단 여부
 

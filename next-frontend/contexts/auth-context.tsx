@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('accessToken', response.accessToken);
       console.log('response accesstoken:', response.accessToken); // 디버깅용 로그
       setUser(response.userInfo);
-      toast({ title: successMessage, description: `${response.userInfo.displayName}님, 환영합니다.` });
+      toast({ title: successMessage, description: `${response.userInfo.name}님, 환영합니다.` });
       router.push('/dashboard');
       return true;
     }
