@@ -208,3 +208,8 @@ azure:
   blob:
     connection-string: ${AZURE_BLOB_CONN_STRING}
     container-name: ${AZURE_BLOB_CONTAINER}
+  # ==============================================================================
+  # Azure Key Vault Configuration (보안 키 관리)
+  # ==============================================================================
+  keyvault:
+    uri: ${AZURE_KEYVAULT_URI:}                       # Key Vault URI (예: https://your-vault.vault.azure.net/)
