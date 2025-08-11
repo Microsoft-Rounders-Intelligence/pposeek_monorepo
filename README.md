@@ -65,12 +65,12 @@ URL: http://localhost:3000
 ├── spring-backend/     # Spring Boot 백엔드 API 서버
     └── Dockerfile
 ├── docker-compose.yml  # 전체 서비스 실행을 위한 Docker Compose 설정 파일
-├── .github
+├── .github             # Azure 배포 자동화 파이프라인 구성 
     └── workflows
-        └── deploy.yml  # Azure 배포 자동화 파이프라인 구성 
+        └── deploy.yml  
 ├── .env                # 환경설정파일 
 ├── logs                # 각 서비스별 로그 파일
-├── README.md           #리드미 
+├── README.md           # 리드미 
 ├── ai-service          # ai 서빙하는 서버(추가예정)
     └── Dockerfile
 └── infra               # 인프라 통합 파일
