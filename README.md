@@ -70,6 +70,11 @@ URL: http://localhost:3000
         └── deploy.yml  
 ├── .env                # 환경설정파일 
 ├── logs                # 각 서비스별 로그 파일
+    └── ai-service 
+    └── kafka
+    └── nextjs
+    └── nginx
+    └── spring-boot
 ├── README.md           # 리드미 
 ├── ai-service          # ai 서빙하는 서버(추가예정)
     └── Dockerfile
