@@ -60,11 +60,25 @@ URL: http://localhost:3000
 ## 📂 프로젝트 구조
 ```bash
 .
-├── next-frontend/     # Next.js 프론트엔드 애플리케이션
-├── spring-backend/    # Spring Boot 백엔드 API 서버
-└── docker-compose.yml # 전체 서비스 실행을 위한 Docker Compose 설정 파일
-├── README.md #리드미 
-├── ai-service # ai 서빙하는 서버(추가예정)
-├── monitoring # 모니터링 도구들(추가예정)
-└── infra(Devops) # Nginx 리버스 프록시 설정 + infra(devops)
+├── next-frontend/      # Next.js 프론트엔드 애플리케이션
+    └── Dockerfile
+├── spring-backend/     # Spring Boot 백엔드 API 서버
+    └── Dockerfile
+├── docker-compose.yml  # 전체 서비스 실행을 위한 Docker Compose 설정 파일
+├── .env                # 환경설정파일 
+├── logs                # 각 서비스별 로그 파일
+├── README.md           #리드미 
+├── ai-service          # ai 서빙하는 서버(추가예정)
+    └── Dockerfile
+└── infra               # 인프라 통합 파일
+    └── elk             # ELK STACK 
+        └── filebeat 
+        └── logstash 
+    └── monitoring      # Grafana/Prometheus
+        └── grafana
+        └── prometheus
+    └── nginx           # Nginx 리버스 프록시 설정 + infra(devops)
+        └── Dockerfile 
+
+
 ```
