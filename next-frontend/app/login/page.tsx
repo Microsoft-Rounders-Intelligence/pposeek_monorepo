@@ -27,9 +27,8 @@ const loginSchema = z.object({
 
 // 회원가입 폼 유효성 검사 스키마
 const registerSchema = z.object({
-  username: z.string().min(2, { message: "사용자명은 2자 이상이어야 합니다." }),
   email: z.string().email({ message: "올바른 이메일 형식을 입력해주세요." }),
-  displayName: z.string().min(2, { message: "닉네임은 2자 이상이어야 합니다." }),
+  name: z.string().min(2, { message: "닉네임은 2자 이상이어야 합니다." }),
   password: z.string().min(8, { message: "비밀번호는 8자 이상이어야 합니다." }),
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
@@ -47,7 +46,11 @@ function LoginForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    await login({ username: values.email, password: values.password });
+    await login({ 
+      username: values.email, 
+      password: values.password,
+      sessionName: "Web Browser" // 기본 세션 이름
+    });
   };
 
   return (
@@ -94,15 +97,14 @@ function RegisterForm() {
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { username: "", email: "", displayName: "", password: "", confirmPassword: "" },
+    defaultValues: { email: "", name: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     const registerData: RegisterData = {
-      username: values.username,
       email: values.email,
       password: values.password,
-      displayName: values.displayName,
+      name: values.name,
     };
     await register(registerData);
   };
@@ -112,25 +114,12 @@ function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <Label htmlFor="reg-username">사용자명</Label>
-              <FormControl>
-                <Input id="reg-username" placeholder="사용할 아이디" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <Label htmlFor="reg-email">이메일</Label>
               <FormControl>
-                <Input id="reg-email" type="email" placeholder="이메일 주소" {...field} />
+                <Input id="reg-email" type="email" placeholder="이메일" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -138,12 +127,12 @@ function RegisterForm() {
         />
         <FormField
           control={form.control}
-          name="displayName"
+          name="name"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="reg-displayName">닉네임</Label>
+              <Label htmlFor="reg-name">닉네임</Label>
               <FormControl>
-                <Input id="reg-displayName" placeholder="활동할 닉네임" {...field} />
+                <Input id="reg-name" placeholder="닉네임" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

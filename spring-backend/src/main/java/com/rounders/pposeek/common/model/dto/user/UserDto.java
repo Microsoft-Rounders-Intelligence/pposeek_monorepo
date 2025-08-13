@@ -28,17 +28,12 @@ import java.time.LocalDateTime;
 public class UserDto {
     
     /**
-     * 사용자 ID
+     * 사용자 ID (Primary Key)
      */
     private Integer userId;
     
     /**
-     * 사용자명
-     */
-    private String username;
-    
-    /**
-     * 이메일
+     * 이메일 (Unique)
      */
     private String email;
     
@@ -48,12 +43,13 @@ public class UserDto {
     private String passwordHash;
     
     /**
-     * 표시명
+     * 사용자 이름
      */
-    private String displayName;
+    private String name;
     
     /**
-     * 사용자 역할 (USER, COMPANY, ADMIN)
+     * 사용자 역할 (admin, user 등)
+     * READ-ONLY: DB에서만 관리, 백엔드에서는 수정하지 않음
      */
     private String role;
     
@@ -63,12 +59,26 @@ public class UserDto {
     private LocalDateTime createdAt;
     
     /**
-     * 수정일시
+     * 마지막 로그인 일시
      */
-    private LocalDateTime updatedAt;
+    private LocalDateTime lastLogin;
+    
+    // ========== Legacy fields for backward compatibility ==========
+    /**
+     * 사용자명 (email과 동일하게 처리)
+     * @deprecated Use email instead
+     */
+    @Deprecated
+    public String getUsername() {
+        return this.email;
+    }
     
     /**
-     * 활성화 상태
+     * 표시명 (name과 동일하게 처리)
+     * @deprecated Use name instead
      */
-    private Boolean isActive;
+    @Deprecated
+    public String getDisplayName() {
+        return this.name;
+    }
 }

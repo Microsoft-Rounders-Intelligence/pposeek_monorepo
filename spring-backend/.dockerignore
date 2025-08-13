@@ -1,0 +1,11 @@
+# Exclude build and IDE artifacts from Docker context
+.gradle/
+build/
+bin/
+out/
+logs/
+!.mvn/wrapper/maven-wrapper.jar
+**/.DS_Store
+**/.idea/
+**/.vscode/
+**/*.iml

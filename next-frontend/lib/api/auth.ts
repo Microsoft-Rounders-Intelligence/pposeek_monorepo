@@ -2,39 +2,38 @@ import {apiClient} from './client';
 
 // --- 타입 정의 ---
 
-// 사용자 정보 타입 (UserDto)
+// 사용자 정보 타입 (UserDto - MySQL User 테이블 기준)
 export interface User {
-  userId: number;
-  username: string;
-  email: string;
-  displayName: string;
-  role: string;
-  isActive: boolean;
+  userId: number;        // user_id
+  email: string;         // email
+  name: string;          // name (displayName 대신 name 사용)
+  role: string;          // role (admin, user 등)
+  createdAt?: string;    // created_at
+  lastLogin?: string;    // last_login
 }
 
 
 
 // 백엔드로부터 받는 토큰 정보 타입 (TokenInfo)
 export interface TokenInfo {
-  grantType: string;
-  accessToken: string;
-  expiresIn: number;
-  refreshToken: string;
-  userInfo: User;
+  grantType: string;      // "Bearer"
+  accessToken: string;    // JWT 토큰
+  expiresIn: number;      // 만료 시간 (초)
+  userInfo: User;         // 사용자 정보
 }
 
 // 로그인 시 서버로 보낼 데이터 타입 (LoginDto)
 export interface LoginData {
   username: string; // 백엔드에서는 이메일을 username 필드로 받습니다.
   password: string;
+  sessionName?: string; // 세션 이름 (선택사항)
 }
 
 // 회원가입 시 서버로 보낼 데이터 타입 (RegisterDto)
 export interface RegisterData {
-  username: string;
   email: string;
   password: string;
-  displayName?: string;
+  name: string;
 }
 
 // --- API 함수들 ---

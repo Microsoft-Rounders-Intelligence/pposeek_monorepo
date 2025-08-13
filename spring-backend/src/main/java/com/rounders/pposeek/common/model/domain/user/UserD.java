@@ -28,17 +28,12 @@ import java.time.LocalDateTime;
 public class UserD {
     
     /**
-     * 사용자 ID
+     * 사용자 ID (Primary Key)
      */
     private Integer userId;
     
     /**
-     * 사용자명
-     */
-    private String username;
-    
-    /**
-     * 이메일
+     * 이메일 (Unique)
      */
     private String email;
     
@@ -48,9 +43,9 @@ public class UserD {
     private String passwordHash;
     
     /**
-     * 표시명
+     * 사용자 이름
      */
-    private String displayName;
+    private String name;
     
     /**
      * 생성일시
@@ -58,12 +53,7 @@ public class UserD {
     private LocalDateTime createdAt;
     
     /**
-     * 수정일시
+     * 마지막 로그인 일시
      */
-    private LocalDateTime updatedAt;
-    
-    /**
-     * 활성화 상태
-     */
-    private Boolean isActive;
+    private LocalDateTime lastLogin;
 }
