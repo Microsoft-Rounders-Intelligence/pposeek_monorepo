@@ -90,3 +90,6 @@ URL: http://localhost:3000
 
 
 ```
+
+## 📂 발표 자료
+[최종_발표자료.pptx](https://github.com/user-attachments/files/21747122/_MSAI_Team2_Rounders_PPO-Seek_0812_.pptx)
