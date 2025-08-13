@@ -16,8 +16,9 @@
 * Spring Boot 3
 * Spring Security & JWT (JSON Web Token)
 * MyBatis
-* H2 (개발용 인메모리 DB)
 * Gradle
+* Kafka(KRaft)
+* Flask 
 
 ### **Frontend**
 * Next.js
@@ -29,7 +30,35 @@
 ### **DevOps**
 * Docker & Docker Compose
 * Nginx (Reverse Proxy)
+* Github actions
 
+### **Monitoring** 
+* Grafana/Prometheus
+* ELK Stack
+
+### **Cloud** 
+* Azure Container Registry 
+* Azure Container Apps 
+* Azure event hubs 
+* Azure OpenAI 
+* Azure DNS 
+* Azure Key Vault 
+* Azure monitor 
+* Azure Storage Account 
+* Azure API GATEWAY
+
+### **Network** 
+* VPN(tailscale)
+
+### **DataBase** 
+* MySQL
+* FAISS (Vector)
+
+
+
+### **Collaborative Software 
+* Confluence 
+* Microsoft Teams 
 ---
 
 ## ✅ Prerequisites
