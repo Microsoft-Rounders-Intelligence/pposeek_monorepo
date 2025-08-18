@@ -3,10 +3,9 @@
 ## *우리 모두 취업 뽀셔버리자 !*
 <img width="1435" height="809" alt="Image" src="https://github.com/user-attachments/assets/c18f78c6-be77-499e-89ef-259fad7b4da3" />
 
-
 ## 📂 발표 자료, 🎥 시연 영상
 - [최종_발표자료.pdf](./배포용_MSAI_Team2_Rounders_PPO-Seek_최종_250812.pdf)  
-- [![시연 영상](https://img.youtube.com/vi/AyK05lCFI0E/0.jpg)](https://www.youtube.com/watch?v=AyK05lCFI0E)  
+- [시연 영상](https://www.youtube.com/watch?v=AyK05lCFI0E)  
   *(클릭 시 유튜브로 이동합니다)*
 
 
