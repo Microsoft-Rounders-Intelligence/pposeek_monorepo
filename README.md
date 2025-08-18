@@ -3,6 +3,14 @@
 ## *우리 모두 취업 뽀셔버리자 !*
 <img width="1435" height="809" alt="Image" src="https://github.com/user-attachments/assets/c18f78c6-be77-499e-89ef-259fad7b4da3" />
 
+
+## 📂 발표 자료, 🎥 시연 영상
+- [최종_발표자료.pdf](./배포용_MSAI_Team2_Rounders_PPO-Seek_최종_250812.pdf)  
+- [![시연 영상](https://img.youtube.com/vi/AyK05lCFI0E/0.jpg)](https://www.youtube.com/watch?v=AyK05lCFI0E)  
+  *(클릭 시 유튜브로 이동합니다)*
+
+
+
 뽀식이는 AI 기술을 활용하여 구직자에게는 맞춤형 채용 공고를 추천하고, 기업에게는 적합한 인재를 연결해주는 지능형 채용 플랫폼입니다.
 
 이 프로젝트는 Spring Boot 백엔드와 Next.js 프론트엔드로 구성된 **모노레포(Monorepo)** 구조를 가지며, **Docker**를 통해 전체 서비스를 손쉽게 관리하고 실행할 수 있습니다.
@@ -119,6 +127,3 @@ URL: http://localhost:3000
 
 
 ```
-
-## 📂 발표 자료
-[최종_발표자료.pdf](./배포용_MSAI_Team2_Rounders_PPO-Seek_최종_250812.pdf)
