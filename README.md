@@ -121,4 +121,4 @@ URL: http://localhost:3000
 ```
 
 ## 📂 발표 자료
-[최종_발표자료.pptx](https://github.com/user-attachments/files/21747122/_MSAI_Team2_Rounders_PPO-Seek_0812_.pptx)
+[최종_발표자료.pdf](./배포용_MSAI_Team2_Rounders_PPO-Seek_최종_250812.pdf)
