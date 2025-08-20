@@ -63,7 +63,7 @@
 
 
 
-### **Collaborative Software 
+### **Collaborative Software**
 * Confluence 
 * Microsoft Teams 
 ---
@@ -74,6 +74,12 @@
 
 * [**Docker Desktop**](https://www.docker.com/products/docker-desktop/)
 
+
+## **시스템 아키텍처** 
+
+<img width="1040" height="539" alt="Image" src="https://github.com/user-attachments/assets/f0127cdd-2bb7-45ad-a904-e51103041635" />
+<img width="1048" height="540" alt="Image" src="https://github.com/user-attachments/assets/dfdf9e16-155b-4c25-b090-1f83bccc2961" />
+<img width="1053" height="544" alt="Image" src="https://github.com/user-attachments/assets/8448b2d9-2067-457d-a1b1-d45fc763b101" />
 ---
 
 ## 🚀 시작하기
